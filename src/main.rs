@@ -6,6 +6,10 @@ use iced::{
     executor, mouse, Application, Color, Command, Font, Point, Settings, Subscription, Theme,
 };
 use std::fmt::Debug;
+use std::{thread, time};
+
+const DEFAULT_KEY_COLOR: Color = Color::from_rgb(0.5, 0.5, 1.0);
+const PRESSED_KEY_COLOR: Color = Color::from_rgb(1.0, 0.0, 0.0);
 
 fn main() -> iced::Result {
     AppKeyboard::run(Settings::default())
@@ -14,6 +18,7 @@ fn main() -> iced::Result {
 struct KeyPress {
     key: char,
     pressed: bool,
+    color: Color,
 }
 
 struct AppKeyboard {
@@ -42,6 +47,7 @@ impl Application for AppKeyboard {
             .map(|c| KeyPress {
                 key: c,
                 pressed: false,
+                color: DEFAULT_KEY_COLOR,
             })
             .collect();
 
@@ -57,13 +63,14 @@ impl Application for AppKeyboard {
             Message::KeyPressed(character) => {
                 if let Some(key_press) = self.layout.iter_mut().find(|key| key.key == character) {
                     key_press.pressed = true;
+                    key_press.color = PRESSED_KEY_COLOR;
                 }
             }
 
-            // TODO: Better
             Message::KeyReleased => {
                 for key_press in self.layout.iter_mut() {
                     key_press.pressed = false;
+                    key_press.color = DEFAULT_KEY_COLOR;
                 }
             }
 
@@ -85,11 +92,11 @@ impl Application for AppKeyboard {
         event::listen().map(|message| {
             if let Event::Keyboard(key_event) = message {
                 match key_event {
-                    keyboard::Event::KeyReleased { key, .. } => {
-                        println!("Released{:?}", key);
+                    keyboard::Event::KeyReleased { .. } => {
+                        thread::sleep(time::Duration::from_millis(100));
                         Message::KeyReleased
                     }
-                    keyboard::Event::KeyPressed { key, text, .. } => {
+                    keyboard::Event::KeyPressed { text, .. } => {
                         println!("Pressed{:?}", text);
                         Message::KeyPressed(text.unwrap().chars().next().unwrap())
                     }
@@ -123,23 +130,18 @@ impl<Message> canvas::Program<Message> for AppKeyboard {
             let x = (i as f32 % 10.0) * (key_width + padding);
             let y = (i as f32 / 10.0).floor() * (key_height + padding);
 
-            let color = if key.pressed {
-                Color::from_rgb(255.0, 0.0, 0.0)
-                // Color::from_rgb(0.5, 0.5, 1.0)
-            } else {
-                Color::WHITE
-            };
-
             frame.fill_rectangle(
                 Point::new(x, y),
                 iced::Size::new(key_width, key_height),
-                color,
+                key.color,
             );
 
-            let rectangle =
-                Path::rectangle(Point::new(x, y), iced::Size::new(key_width, key_height));
+            let rectangle = Path::rectangle(
+                Point::new(x, y), 
+                iced::Size::new(key_width, key_height)
+            );
 
-            frame.fill(&rectangle, Color::BLACK);
+            frame.fill(&rectangle, key.color);
 
             // Draw the key label
             frame.fill_text(canvas::Text {
