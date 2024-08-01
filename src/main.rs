@@ -62,9 +62,9 @@ impl Application for AppKeyboard {
 
             // TODO: Better
             Message::KeyReleased => {
-                // for key_press in self.layout.iter_mut() {
-                //     key_press.pressed = false;
-                // }
+                for key_press in self.layout.iter_mut() {
+                    key_press.pressed = false;
+                }
             }
 
             _ => {}
