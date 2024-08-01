@@ -12,7 +12,7 @@ const DEFAULT_KEY_COLOR: Color = Color::from_rgb(0.5, 0.5, 1.0);
 const PRESSED_KEY_COLOR: Color = Color::from_rgb(1.0, 0.0, 0.0);
 
 fn main() -> iced::Result {
-    AppKeyboard::run(Settings::default())
+    TaipuApp::run(Settings::default())
 }
 
 struct KeyPress {
@@ -21,7 +21,7 @@ struct KeyPress {
     color: Color,
 }
 
-struct AppKeyboard {
+struct TaipuApp {
     layout: Vec<KeyPress>,
 }
 
@@ -32,7 +32,7 @@ enum Message {
     Nothing,
 }
 
-impl Application for AppKeyboard {
+impl Application for TaipuApp {
     type Executor = executor::Default;
 
     type Message = Message;
@@ -111,7 +111,7 @@ impl Application for AppKeyboard {
     }
 }
 
-impl<Message> canvas::Program<Message> for AppKeyboard {
+impl<Message> canvas::Program<Message> for TaipuApp {
     type State = ();
 
     fn draw(
