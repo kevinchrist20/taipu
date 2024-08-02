@@ -1,7 +1,7 @@
 use iced::event::{self, Event};
 use iced::keyboard;
 use iced::widget::canvas::{Frame, Geometry, Path};
-use iced::widget::{canvas, Canvas, Column};
+use iced::widget::{canvas, Canvas, Column, Container, Text, TextInput};
 use iced::{
     executor, mouse, Application, Color, Command, Font, Point, Settings, Subscription, Theme,
 };
@@ -23,12 +23,15 @@ struct KeyPress {
 
 struct TaipuApp {
     layout: Vec<KeyPress>,
+    lesson_text: String,
+    input_text: String,
 }
 
 #[derive(Debug, Clone)]
 enum Message {
     KeyPressed(char),
     KeyReleased,
+    InputChanged(String),
     Nothing,
 }
 
@@ -53,7 +56,11 @@ impl Application for TaipuApp {
             })
             .collect();
 
-        (Self { layout: keys }, Command::none())
+        (Self { 
+            layout: keys,
+            lesson_text: String::from("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi."),
+            input_text: String::new(),
+        }, Command::none())
     }
 
     fn title(&self) -> String {
@@ -66,6 +73,8 @@ impl Application for TaipuApp {
                 if let Some(key_press) = self.layout.iter_mut().find(|key| key.key == character) {
                     key_press.pressed = true;
                     key_press.color = PRESSED_KEY_COLOR;
+
+                    self.input_text.push(character);
                 }
             }
 
@@ -74,6 +83,10 @@ impl Application for TaipuApp {
                     key_press.pressed = false;
                     key_press.color = DEFAULT_KEY_COLOR;
                 }
+            }
+
+            Message::InputChanged(new_value) => {
+                self.input_text = new_value;
             }
 
             _ => {}
@@ -87,7 +100,25 @@ impl Application for TaipuApp {
             .width(iced::Length::Fill)
             .height(iced::Length::Fill);
 
-        Column::new().push(keyboard_canvas).padding(20).into()
+        let lesson_text = Text::new(&self.lesson_text).size(20);
+        let typing_area = TextInput::new(
+            "Type here...",
+            &self.input_text,
+        )
+        // .on_input(Message::InputChanged)
+        .padding(10)
+        .size(20);
+
+        let keyboard_area = Column::new().push(keyboard_canvas).padding(20);
+        
+        Container::new(
+            Column::new()
+                .push(lesson_text)
+                .push(typing_area)
+                .push(keyboard_area)
+        )
+        .padding(20)
+        .into()
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
@@ -99,7 +130,6 @@ impl Application for TaipuApp {
                         Message::KeyReleased
                     }
                     keyboard::Event::KeyPressed { text, .. } => {
-                        println!("Pressed{:?}", text);
                         Message::KeyPressed(text.unwrap().chars().next().unwrap())
                     }
                     _ => Message::Nothing,
