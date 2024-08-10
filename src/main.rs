@@ -15,16 +15,25 @@ fn main() -> iced::Result {
     TaipuApp::run(Settings::default())
 }
 
+enum KeyType {
+    Number(char),
+    Letter(char),
+    Special(String)
+}
+
 struct KeyPress {
-    key: char,
+    key_type: KeyType,
     pressed: bool,
     color: Color,
+    width: f32,
 }
 
 struct TaipuApp {
-    layout: Vec<KeyPress>,
+    layout: Vec<Vec<KeyPress>>,
     lesson_text: String,
     input_text: String,
+    shift_pressed: bool,
+    caps_lock: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -45,22 +54,44 @@ impl Application for TaipuApp {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        let keys: Vec<KeyPress> = "qwertyuiop\
-                                    asdfghjkl;\
-                                    zxcvbnm,./"
-            .chars()
-            .map(|c| KeyPress {
-                key: c,
-                pressed: false,
-                color: DEFAULT_KEY_COLOR,
-            })
-            .collect();
+        let layout = vec![
+            // Number row
+            vec!["`","1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Backspace"]
+                .into_iter()
+                .map(create_key)
+                .collect(),
+            // QWERTY row
+            vec!["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]", "\\"]
+                .into_iter()
+                .map(create_key)
+                .collect(),
+            // Home row
+            vec!["Caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'", "Enter"]
+                .into_iter()
+                .map(create_key)
+                .collect(),
+            // Bottom row
+            vec!["Shift", "z", "x", "c", "v", "b", "n", "m", ",", ".", "/", "Shift"]
+                .into_iter()
+                .map(create_key)
+                .collect(),
+            // Space bar row
+            vec!["Ctrl", "Win", "Alt", "Space", "Alt", "Fn", "Ctrl"]
+                .into_iter()
+                .map(create_key)
+                .collect(),
+        ];
 
-        (Self { 
-            layout: keys,
-            lesson_text: String::from("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi."),
-            input_text: String::new(),
-        }, Command::none())
+        (
+            Self { 
+                layout,
+                lesson_text: String::from("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi."),
+                input_text: String::new(),
+                shift_pressed: false,
+                caps_lock: false,
+            }, 
+        Command::none()
+    )
     }
 
     fn title(&self) -> String {
@@ -70,19 +101,19 @@ impl Application for TaipuApp {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             Message::KeyPressed(character) => {
-                if let Some(key_press) = self.layout.iter_mut().find(|key| key.key == character) {
-                    key_press.pressed = true;
-                    key_press.color = PRESSED_KEY_COLOR;
+                // if let Some(key_press) = self.layout.iter_mut().find(|key| key.key == character) {
+                //     key_press.pressed = true;
+                //     key_press.color = PRESSED_KEY_COLOR;
 
-                    self.input_text.push(character);
-                }
+                //     self.input_text.push(character);
+                // }
             }
 
             Message::KeyReleased => {
-                for key_press in self.layout.iter_mut() {
-                    key_press.pressed = false;
-                    key_press.color = DEFAULT_KEY_COLOR;
-                }
+                // for key_press in self.layout.iter_mut() {
+                //     key_press.pressed = false;
+                //     key_press.color = DEFAULT_KEY_COLOR;
+                // }
             }
 
             Message::InputChanged(new_value) => {
@@ -154,45 +185,79 @@ impl<Message> canvas::Program<Message> for TaipuApp {
     ) -> Vec<Geometry> {
         let mut frame = Frame::new(renderer, bounds.size());
 
-        let num_of_rows = 3;
-        let num_of_cols = 10;
+        let total_width = bounds.width;
+        let total_height = bounds.height * 0.4;
+        let start_y = bounds.height - total_height;
 
-        let total_keyboard_width = bounds.width;
-        let total_keyboard_height = bounds.height * 0.3;
+        let row_height = total_height / self.layout.len() as f32;
+        let unit_width = total_width / 15.0;
 
-        let key_width = total_keyboard_width / (num_of_cols as f32) * 0.9;
-        let hr_padding = total_keyboard_width / (num_of_cols as f32) * 0.1;
-        let key_height = total_keyboard_height / (num_of_rows as f32) * 0.9;
-        let vertical_padding = total_keyboard_height / (num_of_rows as f32) * 0.1;
+        for (row_index, row) in self.layout.iter().enumerate() {
+            let mut x = 0.0;
+            let y = start_y + row_index as f32 * row_height;
 
-        let start_y_pos = bounds.height - total_keyboard_height;
+            for key in row {
+                let key_width = key.width * unit_width;
+                let key_height = row_height * 0.9;
 
-        for (i, key) in self.layout.iter().enumerate() {
-            let row = i / num_of_cols;
-            let col = i % num_of_cols;
+                let rectangle = Path::rectangle(
+                    Point::new(x, y),
+                    iced::Size::new(key_width, key_height),
+                );
 
-            let x = col as f32 * (key_width + hr_padding) + hr_padding / 2.0;
-            let y =
-                start_y_pos + row as f32 * (key_height + vertical_padding) + vertical_padding / 2.0;
+                frame.fill(&rectangle, key.color);
 
-            let rectangle =
-                Path::rectangle(Point::new(x, y), iced::Size::new(key_width, key_height));
+                // Draw the key label
+                let label = match &key.key_type {
+                    KeyType::Letter(c) | KeyType::Number(c) =>
+                     c.to_string(),
+                    KeyType::Special(s) => s.clone(),
+                };
 
-            frame.fill(&rectangle, key.color);
+                frame.fill_text(
+                        canvas::Text {
+                        content: label,
+                        position: Point::new(x + key_width / 2.0, y + key_height / 2.0),
+                        color: Color::WHITE,
+                        font: Font::MONOSPACE,
+                        size: iced::Pixels(14.0),
+                        horizontal_alignment: iced::alignment::Horizontal::Center,
+                        vertical_alignment: iced::alignment::Vertical::Center,
+                        ..Default::default()
+                    }
+                );
 
-            // Draw the key label
-            frame.fill_text(canvas::Text {
-                content: key.key.to_string(),
-                position: Point::new(x + key_width / 2.0, y + key_height / 2.0),
-                color: Color::WHITE,
-                font: Font::MONOSPACE,
-                size: iced::Pixels(24.0),
-                horizontal_alignment: iced::alignment::Horizontal::Center,
-                vertical_alignment: iced::alignment::Vertical::Center,
-                ..Default::default()
-            });
+                let hr_padding = 5.0;
+                x += key_width + hr_padding;
+            }
         }
 
         vec![frame.into_geometry()]
+    }
+}
+
+fn create_key(key: &str) -> KeyPress {
+    let (key_type, width) = match key {
+        "Enter" | "Caps" => (KeyType::Special(key.to_string()), 1.5),
+        "Backspace" => (KeyType::Special(key.to_string()), 1.2),
+        "Shift" => (KeyType::Special(key.to_string()), 2.2),
+        "Space" => (KeyType::Special(key.to_string()), 6.0),
+        "Ctrl" | "Win" | "Alt" | "Fn" => (KeyType::Special(key.to_string()), 1.0),
+        key if key.len() == 1 => {
+            let c = key.chars().next().unwrap();
+            if c.is_ascii_digit(){
+                (KeyType::Number(c), 1.0)
+            } else {
+                (KeyType::Letter(c), 1.0)
+            }
+        }
+        _ => (KeyType::Special(key.to_string()), 1.0)
+    };
+
+    KeyPress {
+        key_type,
+        pressed: false,
+        color: DEFAULT_KEY_COLOR,
+        width,
     }
 }
