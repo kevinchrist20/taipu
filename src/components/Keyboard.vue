@@ -25,7 +25,7 @@ function handleKeyPress(key: string) {
         v-for="(key, keyIndex) in row" :key="keyIndex" class="keyboard-key px-1 py-1 text-xs sm:text-sm md:text-base lg:text-lg bg-gray-300 border border-gray-400 rounded hover:bg-gray-400 transition-colors"
         :class="{
           'invisible': key === '',
-          'grow': key === 'Space',
+          'grow flex-basis-quarter': key === 'Space',
           'grow-[2]': key === 'Shift' || key === 'Backspace' || key === 'Enter' || key === 'Caps Lock',
         }"
         @click="handleKeyPress(key)"
@@ -43,4 +43,9 @@ function handleKeyPress(key: string) {
     flex-grow: 1;
     min-width: 0;
 }
+
+.flex-basis-quarter {
+    flex-basis: 25%;
+}
+
 </style>
