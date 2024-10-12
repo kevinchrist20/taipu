@@ -11,15 +11,13 @@ const keys = ref([
   ['Ctrl', '', 'Alt', 'Space', 'Alt', '', 'Ctrl'],
 ])
 
-const keyboardRef = ref<HTMLDivElement | null>(null)
-
 function handleKeyPress(key: string) {
   emit('key-pressed', key)
 }
 </script>
 
 <template>
-  <div ref="keyboardRef" class="flex flex-col space-y-1 w-screen">
+  <div class="flex flex-col space-y-1 w-screen">
     <div v-for="(row, rowIndex) in keys" :key="rowIndex" class="key-row flex space-x-1">
       <button
         v-for="(key, keyIndex) in row" :key="keyIndex" class="keyboard-key px-1 py-1 text-xs sm:text-sm md:text-base lg:text-lg bg-gray-300 border border-gray-400 rounded hover:bg-gray-400 transition-colors"
