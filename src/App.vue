@@ -8,8 +8,6 @@ const currentPosition = ref(0);
 const typedText = ref("");
 
 function onKeyPress(key: string) {
-  console.log('Key pressed:', key.toLowerCase());
-
   if (key.length === 1) {
     typedText.value += key;
     currentPosition.value++;
@@ -28,12 +26,11 @@ function onKeyPress(key: string) {
     <div class="flex-grow overflow-auto p-4">
       <h1 class="text-2xl font-bold mb-4">Typing Lesson</h1>
 
-      <!-- Display test lesson -->
       <div class="lesson-area">
-        <span v-for="(char, index) in testLesson" :key="index" :class="{
-          'text-green-500': index < currentPosition && typedText[index] === char, // Correct text
-          'text-red-500': index < currentPosition && typedText[index] !== char,  // Incorrect text
-          'bg-yellow-200': index === currentPosition, // Highlight current character
+        <span v-for="(char, index) in testLesson" class="text-gray-400" :key="index" :class="{
+          'text-green-500': index < currentPosition && typedText[index] === char,
+          'text-red-500': index < currentPosition && typedText[index] !== char,
+          'current-text-color': index === currentPosition,
         }">
           {{ char }}
         </span>
@@ -54,18 +51,16 @@ function onKeyPress(key: string) {
   white-space: pre-wrap;
 }
 
-.bg-yellow-200 {
-  background-color: #FEF3C7;
-  /* Light yellow for the current character */
+.current-text-color {
+  background-color: #333;
+  color: #fff;
 }
 
 .text-green-500 {
   color: #22C55E;
-  /* Green for correct characters */
 }
 
 .text-red-500 {
   color: #EF4444;
-  /* Red for incorrect characters */
 }
 </style>
