@@ -45,7 +45,7 @@ onBeforeUnmount(() => {
   <div class="flex flex-col space-y-1 w-screen">
     <div v-for="(row, rowIndex) in keys" :key="rowIndex" class="key-row flex space-x-1">
       <div v-for="(key, keyIndex) in row" :key="keyIndex"
-        class="keyboard-key px-1 py-1 text-xs sm:text-sm md:text-base lg:text-lg bg-gray-300 border border-gray-400 rounded hover:bg-gray-400 transition-colors capitalize"
+        class="keyboard-key px-1 py-1 text-xs sm:text-sm md:text-base lg:text-lg bg-gray-300 border border-gray-400 rounded hover:bg-gray-400 transition-colors capitalize text-center flex items-center justify-center"
         :class="{
           'invisible': key.name === '',
           'grow flex-basis-quarter': key.name === 'Space',
