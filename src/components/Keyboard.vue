@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { defineEmits, ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { createKeyType } from '../types';
 
-const emit = defineEmits(['key-pressed']);
+const {complete} = defineProps<{ complete:boolean }>()
+const emit = defineEmits<{(e:'key-pressed', key:string):void}>();
 
-const keys = ref([
+const keyboard = [
   ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace'],
   ['Tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
   ['Caps Lock', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 'Enter'],
   ['Shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'Shift'],
   ['Ctrl', '', 'Alt', 'Space', 'Alt', '', 'Ctrl'],
-]).value.map(row => row.map(key => createKeyType(key)));
+]
+const keys = keyboard.map(row => row.map(key => createKeyType(key)));
 
 const specialKeys: { [key: string]: string } = {
   'Backspace': 'Backspace',
@@ -28,8 +30,8 @@ const activeKey = ref('');
 function handlePhysicalKeyPress(event: KeyboardEvent) {
   const key: string = event.key in specialKeys ? specialKeys[event.key] : event.key;
   activeKey.value = key;
-
-  emit('key-pressed', key);
+  if(!complete)
+    emit('key-pressed', key);
 }
 
 onMounted(() => {

@@ -1,18 +1,25 @@
 <script setup lang="ts">
 import Keyboard from "./components/Keyboard.vue";
-import { ref, watch } from "vue";
+import { ref, computed } from "vue";
 
 const testLesson = "a sad fad as ad da fad sad as asdf asdf asdf asdf a fad as sad dad ad as a fad asds adfd sadf asdf a sad dad fad as ad da a sad fad dad as a fad";
 
 const currentPosition = ref(0);
 const typedText = ref("");
-const accuracy = ref(100);
+const accuracy = computed(()=>{
+  const correctChars = typedText.value.split('').filter((char, index) => char === testLesson[index]).length;
+  return Math.round((correctChars / (currentPosition.value + 1)) * 100) || 100;
+});
 const timer = ref("00:00");
-const percentComplete = ref(0);
-const wpm = ref(0);
+const percentComplete = computed(()=> Math.round((typedText.value.length / testLesson.length) * 100));
+const wpm = computed(()=>{
+  const words = typedText.value.split(' ').length;
+  const minutes = secondsElapsed.value / 60;
+  return minutes > 0 ? Math.round(words / minutes) : words;
+});
 
-let secondsElapsed = ref(0);
-let timerRunning = ref(false);
+const secondsElapsed = ref(0);
+const timerRunning = ref(false);
 let timerInterval: number | undefined = undefined;
 
 // Function to start the timer
@@ -57,31 +64,6 @@ function onKeyPress(key: string) {
     stopTimer();
   }
 }
-
-// Calculate accuracy
-function calculateAccuracy() {
-  const correctChars = typedText.value.split('').filter((char, index) => char === testLesson[index]).length;
-  accuracy.value = Math.round((correctChars / (currentPosition.value + 1)) * 100) || 100;
-}
-
-// Calculate WPM (only if at least 1 minute has passed or we calculate based on seconds)
-function calculateWPM() {
-  const words = typedText.value.split(' ').length;
-  const minutes = secondsElapsed.value / 60;
-  wpm.value = minutes > 0 ? Math.round(words / minutes) : words; // Calculate WPM
-}
-
-// Calculate percentage completion
-function calculatePercentComplete() {
-  percentComplete.value = Math.round((typedText.value.length / testLesson.length) * 100);
-}
-
-// Watch typing progress and update metrics
-watch(typedText, () => {
-  calculateAccuracy();
-  calculateWPM();
-  calculatePercentComplete();
-});
 </script>
 
 <template>
@@ -115,7 +97,7 @@ watch(typedText, () => {
 
     <!-- Keyboard component -->
     <div class="flex-shrink-0">
-      <Keyboard @key-pressed="onKeyPress" class="p-4" />
+      <Keyboard @key-pressed="onKeyPress" class="p-4" :complete="percentComplete === 100" />
     </div>
   </div>
 </template>
