@@ -16,16 +16,6 @@ export function createKeyType(key: string): KeyboardKeyType {
 
 export function handleKeyPress(key: string): string {
     const keyType: KeyboardKeyType = createKeyType(key);
-  
-    switch (keyType.type) {
-      case 'Number':
-        console.log('Number key pressed:', keyType.name);
-        return keyType.name;
-      case 'Letter':
-        console.log('Letter key pressed:', keyType.name);
-        return keyType.name;
-      case 'Special':
-        console.log('Special key pressed:', keyType.name);
-        return keyType.name;
-    }
+    console.log(`${keyType.type} key pressed:`, keyType.name);
+    return keyType.name;
   }
