@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, computed } from 'vue';
-import { createKeyType } from '../types';
+import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
+import { createKeyType } from '../types'
 
-const { complete, next } = defineProps<{ complete:boolean, next?:string }>()
-const emit = defineEmits<{(e:'key-pressed', key:string):void}>();
+const { complete, next } = defineProps<{ complete: boolean, next?: string }>()
+const emit = defineEmits<{ (e: 'key-pressed', key: string): void }>()
 
 const keyboard = [
   ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace'],
@@ -12,9 +12,12 @@ const keyboard = [
   ['Shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'Shift'],
   ['Ctrl', '', 'Alt', 'Space', 'Alt', '', 'Ctrl'],
 ]
-const keys = keyboard.map(row => row.map(key => createKeyType(key)));
 
-const specialKeys: { [key: string]: string } = {
+const keys = keyboard.map(row => row.map(key => createKeyType(key)))
+const nextKey = computed(() => next === ' ' ? 'Space' : next)
+const activeKey = shallowRef()
+
+const specialKeys = {
   'Backspace': 'Backspace',
   'Tab': 'Tab',
   'CapsLock': 'Caps Lock',
@@ -23,32 +26,45 @@ const specialKeys: { [key: string]: string } = {
   'Control': 'Ctrl',
   'Alt': 'Alt',
   ' ': 'Space',
-}
+} as const
 
-const activeKey = computed(()=> next === ' ' ? 'Space' : next);
 
 function handlePhysicalKeyPress(event: KeyboardEvent) {
-  const key: string = event.key in specialKeys ? specialKeys[event.key] : event.key;
-  if(!complete)
-    emit('key-pressed', key);
+  const key: string = (event.key) in specialKeys ? specialKeys[event.key as keyof typeof specialKeys] : event.key
+  if (!complete)
+    emit('key-pressed', key)
+  activeKey.value = key
 }
 
-onMounted(() => window.addEventListener('keydown', handlePhysicalKeyPress));
+function releaseButton() {
+  activeKey.value = ''
+}
 
-onBeforeUnmount(() => window.removeEventListener('keydown', handlePhysicalKeyPress))
+onMounted(() => {
+  window.addEventListener('keydown', handlePhysicalKeyPress)
+  window.addEventListener('keyup', releaseButton)
+})
+
+onBeforeUnmount(() => {
+window.removeEventListener('keydown', handlePhysicalKeyPress)
+window.removeEventListener('keyup', releaseButton)
+})
 </script>
 
 <template>
   <div class="flex flex-col space-y-1 w-screen">
     <div v-for="(row, rowIndex) in keys" :key="rowIndex" class="key-row flex space-x-1">
-      <div v-for="(key, keyIndex) in row" :key="keyIndex"
+      <div
+        v-for="(key, keyIndex) in row" :key="keyIndex"
         class="keyboard-key px-1 py-1 text-xs sm:text-sm md:text-base lg:text-lg bg-gray-300 border border-gray-400 rounded hover:bg-gray-400 transition-colors capitalize text-center flex items-center justify-center"
         :class="{
           'invisible': key.name === '',
           'grow flex-basis-quarter': key.name === 'Space',
           'grow-[2]': key.type === 'Special',
-          'bg-blue-400': key.name === activeKey,
-        }">
+          'bg-blue-400': key.name === nextKey,
+          'shadow-inner outline-none shadow-zinc-600 transition transform scale-95 duration-150 ease-in-out' : key.name.toLowerCase() === activeKey,
+        }"
+      >
         {{ key.name }}
       </div>
     </div>
