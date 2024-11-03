@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { onMounted, onBeforeUnmount, computed } from 'vue';
 import { createKeyType } from '../types';
 
-const {complete} = defineProps<{ complete:boolean }>()
+const { complete, next } = defineProps<{ complete:boolean, next?:string }>()
 const emit = defineEmits<{(e:'key-pressed', key:string):void}>();
 
 const keyboard = [
@@ -25,22 +25,17 @@ const specialKeys: { [key: string]: string } = {
   ' ': 'Space',
 }
 
-const activeKey = ref('');
+const activeKey = computed(()=> next === ' ' ? 'Space' : next);
 
 function handlePhysicalKeyPress(event: KeyboardEvent) {
   const key: string = event.key in specialKeys ? specialKeys[event.key] : event.key;
-  activeKey.value = key;
   if(!complete)
     emit('key-pressed', key);
 }
 
-onMounted(() => {
-  window.addEventListener('keydown', handlePhysicalKeyPress);
-});
+onMounted(() => window.addEventListener('keydown', handlePhysicalKeyPress));
 
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handlePhysicalKeyPress);
-});
+onBeforeUnmount(() => window.removeEventListener('keydown', handlePhysicalKeyPress))
 </script>
 
 <template>
