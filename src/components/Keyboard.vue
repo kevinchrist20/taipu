@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, shallowRef, ref } from 'vue'
 import { createKeyType } from '../types'
 
 const { complete, next } = defineProps<{ complete: boolean, next?: string }>()
@@ -16,6 +16,7 @@ const keyboard = [
 const keys = keyboard.map(row => row.map(key => createKeyType(key)))
 const nextKey = computed(() => next === ' ' ? 'Space' : next)
 const activeKey = shallowRef()
+const isCapsLockActive = ref(false)
 
 const specialKeys = {
   'Backspace': 'Backspace',
@@ -46,8 +47,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-window.removeEventListener('keydown', handlePhysicalKeyPress)
-window.removeEventListener('keyup', releaseButton)
+  window.removeEventListener('keydown', handlePhysicalKeyPress)
+  window.removeEventListener('keyup', releaseButton)
 })
 </script>
 
@@ -61,7 +62,7 @@ window.removeEventListener('keyup', releaseButton)
           'invisible': key.name === '',
           'grow flex-basis-quarter': key.name === 'Space',
           'grow-[2]': key.type === 'Special',
-          'bg-blue-400': key.name === nextKey,
+          'bg-blue-400': key.name === nextKey || (key.name === 'Caps Lock' && isCapsLockActive),
           'shadow-inner outline-none shadow-zinc-600 transition transform scale-95 duration-150 ease-in-out' : key.name.toLowerCase() === activeKey,
         }"
       >
