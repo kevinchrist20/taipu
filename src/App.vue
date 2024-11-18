@@ -9,16 +9,16 @@ const testLesson = sampleText
 
 const currentPosition = ref(0)
 const typedText = ref('')
-const nextKey = computed(() => testLesson[currentPosition.value])
+const nextKey = computed(() => testLesson.content[currentPosition.value])
 const secondsElapsed = ref(0)
 const timerRunning = ref(false)
 let timerInterval: number | undefined
 
 const rateInfo = reactive({
   timer: ref('00:00'),
-  percentComplete: computed(() => Math.round((typedText.value.length / testLesson.length) * 100)),
+  percentComplete: computed(() => Math.round((typedText.value.length / testLesson.content.length) * 100)),
   accuracy: computed(() => {
-  const correctChars = typedText.value.split('').filter((char, index) => char === testLesson[index]).length
+  const correctChars = typedText.value.split('').filter((char, index) => char === testLesson.content[index]).length
   return Math.round((correctChars / (currentPosition.value + 1)) * 100) || 100
 }),
   wpm: computed(() => {
@@ -67,7 +67,7 @@ function onKeyPress(key: string) {
     currentPosition.value++
   }
 
-  if (currentPosition.value >= testLesson.length)
+  if (currentPosition.value >= testLesson.content.length)
     stopTimer()
 }
 </script>
@@ -78,15 +78,15 @@ function onKeyPress(key: string) {
 
     <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20rem!">
       <div class="flex-grow overflow-auto p-4 h-40rem">
-      <h1 class="text-2xl font-bold mb-4">
-        Typing Lesson
-      </h1>
+      <h2 class="text-lg font-medium leading-snug tracking-tight mb-4 text-zinc-6">
+        {{ testLesson.title }}
+      </h2>
 
       <Rate :rate-info />
 
       <div class="bg-zinc-50 dark:bg-zinc-8! rounded-b-lg p-5 text-5xl leading-relaxed">
         <span
-          v-for="(char, index) in testLesson" :key="index" class="text-gray-400" :class="{
+          v-for="(char, index) in testLesson.content" :key="index" class="text-gray-400" :class="{
             'text-green-500': index < currentPosition && typedText[index] === char,
             'text-red-500': index < currentPosition && typedText[index] !== char,
             'current-text-color': index === currentPosition,
