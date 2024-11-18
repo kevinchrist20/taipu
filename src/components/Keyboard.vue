@@ -53,16 +53,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex flex-col space-y-1 w-screen">
+  <div class="flex flex-col space-y-1 w-full">
     <div v-for="(row, rowIndex) in keys" :key="rowIndex" class="key-row flex space-x-1">
       <div
         v-for="(key, keyIndex) in row" :key="keyIndex"
-        class="keyboard-key px-1 py-1 text-xs sm:text-sm md:text-base lg:text-lg bg-gray-300 border border-gray-400 rounded hover:bg-gray-400 transition-colors capitalize text-center flex items-center justify-center"
+        class="h-55px flex-grow-1 min-w-0 px-1 py-1 text-xs sm:text-sm md:text-base lg:text-lg bg-zinc-1 dark:bg-zinc-7 dark:border-0 border border-zinc-2 font-medium rounded hover:bg-zinc-400 transition-colors capitalize text-center flex items-center justify-center"
         :class="{
           'invisible': key.name === '',
-          'grow flex-basis-quarter': key.name === 'Space',
+          'grow flex-basis-25%': key.name === 'Space',
           'grow-[2]': key.type === 'Special',
-          'bg-blue-400': key.name === nextKey || (key.name === 'Caps Lock' && isCapsLockActive),
+          'bg-amber-500 text-white': key.name === nextKey || (key.name === 'Caps Lock' && isCapsLockActive),
           'shadow-inner outline-none shadow-zinc-600 transition transform scale-95 duration-150 ease-in-out' : key.name.toLowerCase() === activeKey,
         }"
       >
@@ -71,19 +71,3 @@ onBeforeUnmount(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.keyboard-key {
-  height: 55px;
-  flex-grow: 1;
-  min-width: 0;
-}
-
-.flex-basis-quarter {
-  flex-basis: 25%;
-}
-
-.bg-blue-400 {
-  background-color: #60a5fa;
-}
-</style>

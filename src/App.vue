@@ -1,27 +1,31 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
+import { sampleText } from './constants/misc';
+import Header from './components/Header.vue'
 import Keyboard from './components/Keyboard.vue'
+import Rate from './components/Rate.vue';
 
-const testLesson = 'a sad fad as ad da fad sad as asdf asdf asdf asdf a fad as sad dad ad as a fad asds adfd sadf asdf a sad dad fad as ad da a sad fad dad as a fad'
+const testLesson = sampleText
 
 const currentPosition = ref(0)
 const typedText = ref('')
-const nextKey = computed(() => testLesson[currentPosition.value])
+const nextKey = computed(() => testLesson.content[currentPosition.value])
 const secondsElapsed = ref(0)
 const timerRunning = ref(false)
-const timer = ref('00:00')
 let timerInterval: number | undefined
 
-const accuracy = computed(() => {
-  const correctChars = typedText.value.split('').filter((char, index) => char === testLesson[index]).length
+const rateInfo = reactive({
+  timer: ref('00:00'),
+  percentComplete: computed(() => Math.round((typedText.value.length / testLesson.content.length) * 100)),
+  accuracy: computed(() => {
+  const correctChars = typedText.value.split('').filter((char, index) => char === testLesson.content[index]).length
   return Math.round((correctChars / (currentPosition.value + 1)) * 100) || 100
-})
-
-const percentComplete = computed(() => Math.round((typedText.value.length / testLesson.length) * 100))
-const wpm = computed(() => {
+}),
+  wpm: computed(() => {
   const words = typedText.value.split(' ').length
   const minutes = secondsElapsed.value / 60
   return minutes > 0 ? Math.round(words / minutes) : words
+})
 })
 
 // Function to start the timer
@@ -32,7 +36,7 @@ function startTimer() {
       secondsElapsed.value++
       const minutes = Math.floor(secondsElapsed.value / 60)
       const seconds = secondsElapsed.value % 60
-      timer.value = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      rateInfo.timer = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
     }, 1000)
   }
 }
@@ -47,9 +51,8 @@ function stopTimer() {
 
 // Handle key press
 function onKeyPress(key: string) {
-  if (!timerRunning.value) {
+  if (!timerRunning.value)
     startTimer()
-  }
 
   if (key.length === 1) {
     typedText.value += key
@@ -64,34 +67,26 @@ function onKeyPress(key: string) {
     currentPosition.value++
   }
 
-  if (currentPosition.value >= testLesson.length)
+  if (currentPosition.value >= testLesson.content.length)
     stopTimer()
 }
 </script>
 
 <template>
-  <div class="flex flex-col h-screen">
-    <div class="flex-grow overflow-auto p-4">
-      <h1 class="text-2xl font-bold mb-4">
-        Typing Lesson
-      </h1>
+  <div class="flex flex-col h-screen dark:bg-zinc-8 dark:text-white relative overflow-scroll">
+    <Header />
 
-      <!-- Accuracy, Timer, Percent Complete, WPM -->
-      <div class="flex justify-between mb-4">
-        <div>
-          <span class="text-gray-400">Timer: {{ timer }}</span> &nbsp;
-          <span class="text-gray-400">Accuracy: {{ accuracy }}%</span>
-        </div>
-        <div>
-          <span class="text-gray-400">Percent Complete: {{ percentComplete }}%</span> &nbsp;
-          <span class="text-gray-400">WPM: {{ wpm }}</span>
-        </div>
-      </div>
+    <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20rem!">
+      <div class="flex-grow overflow-auto p-4 h-40rem">
+      <h2 class="text-lg font-medium leading-snug tracking-tight mb-4 text-zinc-6">
+        {{ testLesson.title }}
+      </h2>
 
-      <!-- Lesson area -->
-      <div class="lesson-area">
+      <Rate :rate-info />
+
+      <div class="bg-zinc-50 dark:bg-zinc-8! rounded-b-lg p-5 text-5xl leading-relaxed">
         <span
-          v-for="(char, index) in testLesson" :key="index" class="text-gray-400" :class="{
+          v-for="(char, index) in testLesson.content" :key="index" class="text-gray-400" :class="{
             'text-green-500': index < currentPosition && typedText[index] === char,
             'text-red-500': index < currentPosition && typedText[index] !== char,
             'current-text-color': index === currentPosition,
@@ -100,16 +95,20 @@ function onKeyPress(key: string) {
           {{ char }}
         </span>
       </div>
-    </div>
+      </div>
 
-    <!-- Keyboard component -->
-    <div class="flex-shrink-0">
-      <Keyboard :next="nextKey" class="p-4" :complete="percentComplete === 100" @key-pressed="onKeyPress" />
+      <div class="w-full relative bottom-0! left-0">
+        <Keyboard :next="nextKey" class="p-4" :complete="rateInfo.percentComplete === 100" @key-pressed="onKeyPress" />
+      </div>
     </div>
   </div>
 </template>
 
-<style scoped>
+<style>
+* {
+  box-sizing: border-box;
+}
+
 .lesson-area {
   font-size: 1.5rem;
   line-height: 2rem;
