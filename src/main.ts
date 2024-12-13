@@ -3,5 +3,8 @@ import "virtual:uno.css";
 // import '@unocss/reset/tailwind-compat.css'
 import "./assets/tailwind.css";
 import App from "./App.vue";
+import router from "./router";
 
-createApp(App).mount("#app");
+createApp(App)
+    .use(router)
+    .mount("#app");
