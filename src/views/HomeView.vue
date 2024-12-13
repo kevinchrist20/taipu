@@ -1,11 +1,10 @@
-<script>
+<script setup>
 import { invoke } from '../types/tauri_commands';
 
-let message = await invoke('greet', { name: 'Taipu' });
-console.log(message);
-
-async function exitApp() {
-    await invoke('exit_app');
+function exitApp() {
+    invoke('exit_app').then(() => {
+        console.log('App exited');
+    });
 }
 
 </script>
