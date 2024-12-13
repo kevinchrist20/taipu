@@ -1,13 +1,11 @@
 <script>
-import { exit } from '@tauri-apps/api/app'
-import { invoke } from '@tauri-apps/api';
+import { invoke } from '../types/tauri_commands';
 
-let message = invoke('greet');
+let message = await invoke('greet', { name: 'Taipu' });
 console.log(message);
 
-
 async function exitApp() {
-    await exit(1)
+    await invoke('exit_app');
 }
 
 </script>
