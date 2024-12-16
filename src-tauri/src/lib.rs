@@ -1,6 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 mod commands;
+mod db;
 
 use commands::utils_commands;
 
