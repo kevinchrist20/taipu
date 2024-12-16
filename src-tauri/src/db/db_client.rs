@@ -1,11 +1,20 @@
 use std::fs;
 use std::path::Path;
 
+use diesel::{Connection, SqliteConnection};
+
 // Init db
 pub fn init_db() {
-    if !db_exist(){
+    if !db_exist() {
         create_db_file();
     }
+}
+
+pub fn db_conn() -> SqliteConnection {
+    let db_path = get_db_path();
+
+    SqliteConnection::establish(&db_path)
+        .unwrap_or_else(|_| panic!("Error connecting to db at: {}", db_path))
 }
 
 fn create_db_file() {
