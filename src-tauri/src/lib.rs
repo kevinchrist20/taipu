@@ -4,13 +4,18 @@ mod commands;
 mod db;
 
 use commands::utils_commands;
+use db::db_client;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .setup(|_app| {
+            db_client::init_db();
+            
+            Ok(())
+        })
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
-            utils_commands::greet,
             utils_commands::exit_app
         ])
         .run(tauri::generate_context!())
