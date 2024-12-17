@@ -2,6 +2,7 @@
 
 mod commands;
 mod db;
+mod models;
 
 use commands::utils_commands;
 use db::db_client;
