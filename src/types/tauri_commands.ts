@@ -16,7 +16,7 @@ export type TauriCommands = {
 
 export function invoke<T extends keyof TauriCommands>(
     cmd: T,
-    args: TauriCommands[T]['args'] extends undefined ? undefined : TauriCommands[T]['args']
+    args?: TauriCommands[T]['args']
 ): Promise<TauriCommands[T]['returns']> {
     return core.invoke(cmd, args);
 }
