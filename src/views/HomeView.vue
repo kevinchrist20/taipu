@@ -4,19 +4,9 @@ import UtilsService from '../services/util.service';
 
 import { ref } from 'vue';
 import { User } from '../types/bindings';
+import router from '../router';
 
 const users = ref<User[]>([]);
-
-function exitApp() {
-  UtilsService.exitApp();
-}
-
-async function getUsers() {
-  users.value = await UserService.getAllUsers();
-}
-
-getUsers();
-
 const homeScreenOptions = [
   {
     title: "Continue Lesson",
@@ -25,7 +15,7 @@ const homeScreenOptions = [
   },
   {
     title: "Start New Lesson",
-    action: () => console.log("Start New Lesson")
+    action: () => router.push({ path: '/lesson-area' })
   },
   {
     title: "View Progress",
@@ -39,8 +29,17 @@ const homeScreenOptions = [
     title: "Quit Taipu",
     action: exitApp
   }
-]
+];
 
+function exitApp() {
+  UtilsService.exitApp();
+}
+
+async function getUsers() {
+  users.value = await UserService.getAllUsers();
+}
+
+getUsers();
 </script>
 
 <template>
@@ -54,7 +53,7 @@ const homeScreenOptions = [
             index === homeScreenOptions.length - 1
               ? 'bg-red-600 hover:bg-red-700 text-white'
               : 'bg-gray-700 text-white',
-            { 
+            {
               'opacity-50 pointer-events-none': option.disabled,
               'transition-transform transform hover:bg-gray-600 hover:scale-105': !option.disabled
             }
