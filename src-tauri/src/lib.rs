@@ -7,6 +7,7 @@ mod utils;
 mod services;
 
 use commands::utils_commands;
+use commands::user_commands;
 use db::db_client;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -19,7 +20,8 @@ pub fn run() {
         })
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
-            utils_commands::exit_app
+            utils_commands::exit_app,
+            user_commands::get_all_users
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
