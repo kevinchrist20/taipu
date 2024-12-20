@@ -6,6 +6,6 @@ pub fn get_all_users() -> Vec<User> {
 }
 
 #[tauri::command]
-pub fn add_user(new_user: NewUser) {
-    user_service::create_user(&new_user)
+pub fn add_user(body: NewUser) {
+    user_service::create_user(&body)
 }
