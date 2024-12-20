@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { difficultyOptions, keyboardOptions, languageOptions, themeOptions } from '../types';
 import UserService from '../services/user.service';
+import useAlert from '../utils/useAlert';
 
 const name = ref('');
 const username = ref('');
@@ -20,10 +21,10 @@ function createAccount() {
         theme: theme.value,
         lessonDifficulty: lessonDifficulty.value,
     }).then(() => {
-        alert('Account created successfully!');
+        useAlert().setAlert({ message: 'Employee created successfully', type: 'success' })
         // goBack();
     }).catch((error) => {
-        alert('An error occurred while creating the account.');
+        useAlert().setAlert({ message: 'An error occurred while creating the account.', type: 'danger' })
         console.error(error);
     });
 }
