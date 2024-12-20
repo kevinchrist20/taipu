@@ -10,7 +10,7 @@ export type TauriCommands = {
     },
     add_user: {
         returns: void,
-        args: { new_user: NewUser }
+        args: { body: NewUser }
     },
     exit_app: {
         returns: void,

@@ -12,9 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "taipu",
-        "width": 1280,
-        "height": 1024
+        "title": "Taipu",
+        "width": 1080,
+        "height": 840
       }
     ],
     "security": {

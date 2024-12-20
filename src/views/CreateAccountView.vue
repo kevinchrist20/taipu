@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { difficultyOptions, keyboardOptions, languageOptions, themeOptions } from '../types';
+import UserService from '../services/user.service';
 
 const name = ref('');
 const username = ref('');
@@ -10,20 +11,41 @@ const theme = ref('light');
 const lessonDifficulty = ref('beginner');
 
 function createAccount() {
-    console.log({
+    UserService.createUser({
+        id: Math.floor(Math.random() * 1000),
         name: name.value,
         username: username.value,
         keyboardType: keyboardType.value,
         language: language.value,
         theme: theme.value,
         lessonDifficulty: lessonDifficulty.value,
+    }).then(() => {
+        alert('Account created successfully!');
+        // goBack();
+    }).catch((error) => {
+        alert('An error occurred while creating the account.');
+        console.error(error);
     });
+}
+
+function goBack() {
+    window.history.back();
 }
 
 </script>
 
 <template>
-    <div class="flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white font-mono px-6">
+    <div class="flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white font-mono px-6 relative">
+        <!-- Back Button -->
+        <button @click="goBack"
+            class="absolute top-4 left-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-transform transform hover:scale-110">
+            <!-- Back Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+
         <div class="bg-gray-900 rounded-lg shadow-lg p-8 w-full max-w-lg">
             <h1 class="text-3xl font-bold text-center mb-6">Create Account</h1>
             <form @submit.prevent="createAccount">

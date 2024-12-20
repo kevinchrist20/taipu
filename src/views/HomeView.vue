@@ -2,7 +2,7 @@
 import UserService from '../services/user.service';
 import UtilsService from '../services/util.service';
 
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { User } from '../types/bindings';
 import router from '../router';
 
@@ -36,10 +36,15 @@ function exitApp() {
 }
 
 async function getUsers() {
-  users.value = await UserService.getAllUsers();
+  try {
+    users.value = await UserService.getUsers();
+    console.log(users.value);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
-getUsers();
+onMounted(async () => await getUsers())
 </script>
 
 <template>
