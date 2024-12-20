@@ -21,48 +21,6 @@ pub struct User {
     pub lesson_difficulty: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, TS, Debug, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-#[ts(export)]
-pub enum KeyboardType {
-    Qwerty,
-    Azerty,
-}
-
-impl ToString for KeyboardType {
-    fn to_string(&self) -> String {
-        match self {
-            KeyboardType::Qwerty => String::from("qwerty"),
-            KeyboardType::Azerty => String::from("azerty"),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, TS, Debug, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-#[ts(export)]
-pub enum Language {
-    English,
-    French,
-}
-
-#[derive(Serialize, Deserialize, TS, Debug, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-#[ts(export)]
-pub enum Theme {
-    Light,
-    Dark,
-}
-
-#[derive(Serialize, Deserialize, TS, Debug, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-#[ts(export)]
-pub enum LessonDifficulty {
-    Beginner,
-    Intermediate,
-    Advanced,
-}
-
 #[derive(Insertable, Serialize, Deserialize, TS, Debug)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
