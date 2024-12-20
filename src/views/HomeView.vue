@@ -7,10 +7,11 @@ import { User } from '../types/bindings';
 import router from '../router';
 
 const users = ref<User[]>([]);
+
 const homeScreenOptions = [
   {
     title: "Continue Lesson",
-    disabled: users.value.length < 1,
+    disabled:users.value.length > 1,
     action: () => console.log("Continue Lesson")
   },
   {
@@ -38,7 +39,6 @@ function exitApp() {
 async function getUsers() {
   try {
     users.value = await UserService.getUsers();
-    console.log(users.value);
   } catch (error) {
     console.error(error);
   }
