@@ -15,7 +15,7 @@ const homeScreenOptions = [
   },
   {
     title: "Start New Lesson",
-    action: () => router.push({ path: '/lesson-area' })
+    action: () => router.push({ path: '/create-account' })
   },
   {
     title: "View Progress",
