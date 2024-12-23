@@ -26,7 +26,6 @@ pub struct User {
 #[ts(export)]
 #[diesel(table_name = crate::db::schema::users)]
 pub struct NewUser {
-    pub id: i32,
     pub name: String,
     pub username: String,
     pub keyboard_type: Option<String>,
