@@ -11,7 +11,16 @@ const language = ref('english');
 const theme = ref('light');
 const lessonDifficulty = ref('beginner');
 
+const isLoading = ref(false);
+
 function createAccount() {
+    if (!name.value || !username.value) {
+        useAlert().setAlert({ message: 'Name and username are required', type: 'danger' });
+        return;
+    }
+
+    isLoading.value = true;
+
     UserService.createUser({
         name: name.value?.toLowerCase(),
         username: username.value?.toLowerCase(),
@@ -20,10 +29,12 @@ function createAccount() {
         theme: theme.value?.toLowerCase(),
         lessonDifficulty: lessonDifficulty.value?.toLowerCase(),
     }).then(() => {
-        useAlert().setAlert({ message: 'Employee created successfully', type: 'success' })
-        // goBack();
+        useAlert().setAlert({ message: 'Account created successfully', type: 'success' }); 
+        goBack();
     }).catch((error) => {
         useAlert().setAlert({ message: error, type: 'danger' })
+    }).finally(() => {
+        isLoading.value = false;
     });
 }
 
