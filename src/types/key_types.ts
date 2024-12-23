@@ -21,22 +21,22 @@ export function handleKeyPress(key: string): string {
 }
 
 export const keyboardOptions = [
-    { value: 'qwerty', label: 'QWERTY' },
-    { value: 'azerty', label: 'AZERTY' },
+    { value: 'QWERTY', label: 'QWERTY' },
+    { value: 'AZERTY', label: 'AZERTY' },
 ];
 
 export const languageOptions = [
-    { value: 'english', label: 'English' },
-    { value: 'french', label: 'French' },
+    { value: 'ENGLISH', label: 'English' },
+    { value: 'FRENCH', label: 'French' },
 ];
 
 export const themeOptions = [
-    { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' },
+    { value: 'LIGHT', label: 'Light' },
+    { value: 'DARK', label: 'Dark' },
 ];
 
 export const difficultyOptions = [
-    { value: 'beginner', label: 'Beginner' },
-    { value: 'intermediate', label: 'Intermediate' },
-    { value: 'advanced', label: 'Advanced' },
+    { value: 'BEGINNER', label: 'Beginner' },
+    { value: 'INTERMEDIATE', label: 'Intermediate' },
+    { value: 'ADVANCED', label: 'Advanced' },
 ];
