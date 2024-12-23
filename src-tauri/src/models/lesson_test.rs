@@ -6,10 +6,9 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 
-#[derive(Insertable, Queryable, Debug, Serialize,  Deserialize, TS)]
+#[derive(Queryable, Debug, Serialize,  Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
-#[diesel(table_name = crate::db::schema::tests)]
 pub struct LessonTest {
     pub id: i32,
     pub lesson_id: i32,
@@ -19,5 +18,16 @@ pub struct LessonTest {
     pub accuracy_threshold: i32,
     #[ts(type = "string | null")]
     pub created_at: Option<NaiveDateTime>,
+}
+
+// models/test.rs
+#[derive(Insertable)]
+#[diesel(table_name = crate::db::schema::tests)]
+pub struct NewTest {
+    pub lesson_id: i32,
+    pub title: String,
+    pub content: String,
+    pub passing_wpm: i32,
+    pub accuracy_threshold: i32,
 }
 
