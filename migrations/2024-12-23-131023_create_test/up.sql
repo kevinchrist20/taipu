@@ -1,0 +1,10 @@
+-- Your SQL goes here
+CREATE TABLE tests (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    lesson_id INT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    passing_wpm INT NOT NULL DEFAULT 20,
+    accuracy_threshold INT NOT NULL DEFAULT 90,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
