@@ -19,8 +19,6 @@ export default function () {
 }
 
 function setAlert(payload: Alert) {
-  // if (new Set(alerts).has(payload))
-  //   return
   alerts.clear()
   payload.position = alerts.size + 1
   payload.action = payload.action ?? 'Close'
