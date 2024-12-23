@@ -2,16 +2,16 @@
 import UserService from '../services/user.service';
 import UtilsService from '../services/util.service';
 
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { User } from '../types/bindings';
 import router from '../router';
 
 const users = ref<User[]>([]);
 
-const homeScreenOptions = [
+const homeScreenOptions = computed(() => [
   {
     title: "Continue Lesson",
-    disabled:users.value.length > 1,
+    disabled: users.value.length === 0,
     action: () => console.log("Continue Lesson")
   },
   {
@@ -30,7 +30,7 @@ const homeScreenOptions = [
     title: "Quit Taipu",
     action: exitApp
   }
-];
+]);
 
 function exitApp() {
   UtilsService.exitApp();

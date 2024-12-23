@@ -13,19 +13,17 @@ const lessonDifficulty = ref('beginner');
 
 function createAccount() {
     UserService.createUser({
-        id: Math.floor(Math.random() * 1000),
-        name: name.value,
-        username: username.value,
-        keyboardType: keyboardType.value,
-        language: language.value,
-        theme: theme.value,
-        lessonDifficulty: lessonDifficulty.value,
+        name: name.value?.toLowerCase(),
+        username: username.value?.toLowerCase(),
+        keyboardType: keyboardType.value?.toLowerCase(),
+        language: language.value?.toLowerCase(),
+        theme: theme.value?.toLowerCase(),
+        lessonDifficulty: lessonDifficulty.value?.toLowerCase(),
     }).then(() => {
         useAlert().setAlert({ message: 'Employee created successfully', type: 'success' })
         // goBack();
     }).catch((error) => {
-        useAlert().setAlert({ message: 'An error occurred while creating the account.', type: 'danger' })
-        console.error(error);
+        useAlert().setAlert({ message: error, type: 'danger' })
     });
 }
 
