@@ -28,7 +28,7 @@ pub struct User {
 pub struct NewUser {
     pub name: String,
     pub username: String,
-    pub keyboard_type: Option<String>,
+    pub keyboard_type: String,
     pub language: Option<String>,
     pub theme: Option<String>,
     pub lesson_difficulty: Option<String>,
