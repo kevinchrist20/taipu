@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0",
-  "productName": "taipu",
+  "productName": "Taipu",
   "version": "0.1.0",
   "identifier": "com.taipu.app",
   "build": {
@@ -12,10 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "taipu",
-        "width": 800,
-        "height": 600
-        
+        "title": "Taipu",
+        "width": 1080,
+        "height": 840
       }
     ],
     "security": {
