@@ -14,9 +14,9 @@ pub struct Lesson {
     pub difficulty: String,
     pub language: String,
     #[ts(type = "string | null")]
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     #[ts(type = "string | null")]
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 #[derive(Insertable)]
