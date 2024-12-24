@@ -7,10 +7,10 @@ import router from '../router';
 
 const name = ref('');
 const username = ref('');
-const keyboardType = ref('qwerty');
-const language = ref('english');
-const theme = ref('light');
-const lessonDifficulty = ref('beginner');
+const keyboardType = ref('QWERTY');
+const language = ref('ENGLISH');
+const theme = ref('LIGHT');
+const lessonDifficulty = ref('BEGINNER');
 
 const isLoading = ref(false);
 
@@ -44,7 +44,7 @@ function createAccount() {
 <template>
     <div class="flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white font-mono px-6 relative">
         <!-- Back Button -->
-        <button @click="router.back()"
+        <button @click="router.go(-1)"
             class="absolute top-4 left-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-transform transform hover:scale-110">
             <!-- Back Icon -->
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"

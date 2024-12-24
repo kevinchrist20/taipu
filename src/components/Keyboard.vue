@@ -53,17 +53,26 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex flex-col space-y-1 w-full">
-    <div v-for="(row, rowIndex) in keys" :key="rowIndex" class="key-row flex space-x-1">
+  <div class="flex flex-col space-y-2 w-full">
+    <!-- Keyboard Rows -->
+    <div
+      v-for="(row, rowIndex) in keys"
+      :key="rowIndex"
+      class="key-row flex space-x-2"
+    >
+      <!-- Individual Keys -->
       <div
-        v-for="(key, keyIndex) in row" :key="keyIndex"
-        class="h-55px flex-grow-1 min-w-0 px-1 py-1 text-xs sm:text-sm md:text-base lg:text-lg bg-zinc-1 dark:bg-zinc-7 dark:border-0 border border-zinc-2 font-medium rounded hover:bg-zinc-400 transition-colors capitalize text-center flex items-center justify-center"
+        v-for="(key, keyIndex) in row"
+        :key="keyIndex"
+        class="h-14 flex-grow min-w-0 px-2 py-2 text-xs sm:text-sm md:text-base lg:text-lg font-medium rounded-md text-center flex items-center justify-center transition-transform duration-150"
         :class="{
           'invisible': key.name === '',
           'grow flex-basis-25%': key.name === 'Space',
-          'grow-[2]': key.type === 'Special',
-          'bg-amber-500 text-white': key.name === nextKey || (key.name === 'Caps Lock' && isCapsLockActive),
-          'shadow-inner outline-none shadow-zinc-600 transition transform scale-95 duration-150 ease-in-out' : key.name.toLowerCase() === activeKey,
+          'bg-gray-700 text-white': key.type !== 'Special' && key.name !== nextKey,
+          'bg-indigo-600 text-white': key.name === nextKey || (key.name === 'Caps Lock' && isCapsLockActive),
+          'bg-gray-600 text-gray-300': key.type === 'Special',
+          'hover:bg-gray-600': key.type !== 'Special',
+          'shadow-inner transform scale-95': key.name.toLowerCase() === activeKey,
         }"
       >
         {{ key.name }}
