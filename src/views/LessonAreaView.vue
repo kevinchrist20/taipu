@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { sampleText } from '../constants/misc';
-import Header from '../components/Header.vue';
 import Rate from '../components/Rate.vue';
 import Keyboard from '../components/Keyboard.vue';
 
-const testLesson = sampleText
+const testLesson = {
+    title: 'Test Lesson',
+    content: 'This is a test lesson to check the typing speed of the user.'
+}
 
 const currentPosition = ref(0)
 const typedText = ref('')
@@ -74,9 +75,7 @@ function onKeyPress(key: string) {
 </script>
 
 <template>
-    <div class="flex flex-col h-screen dark:bg-zinc-8 dark:text-white relative overflow-scroll">
-        <Header />
-
+    <div class="flex flex-col h-screen bg-gray-800 text-white relative overflow-scroll">
         <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20rem!">
             <div class="flex-grow overflow-auto p-4 h-40rem">
                 <h2 class="text-lg font-medium leading-snug tracking-tight mb-4 text-zinc-6">

@@ -6,6 +6,7 @@ import { computed, onMounted, ref } from 'vue';
 import { User } from '../types/bindings';
 import router from '../router';
 import { SessionStore } from '../storage';
+import { routes } from '../constants';
 
 const users = ref<User[]>([]);
 
@@ -13,11 +14,11 @@ const homeScreenOptions = computed(() => [
   {
     title: "Continue Lesson",
     disabled: users.value.length === 0,
-    action: () => continueLesson
+    action: continueLesson
   },
   {
     title: "Start New Lesson",
-    action: () => router.push({ path: '/create-account' })
+    action: () => router.push({ path: routes.createAccount })
   },
   {
     title: "View Progress",
@@ -45,9 +46,9 @@ async function getUsers() {
   }
 }
 
-function continueLesson() {
+function continueLesson() {  
   SessionStore.setUser(users.value[0]);
-  router.push({ path: '/lessons' });
+  router.push({ path: routes.lessons });
 }
 
 onMounted(async () => await getUsers())
