@@ -2,12 +2,14 @@
 import { onMounted, ref } from 'vue';
 import { Lesson, User } from '../types/bindings';
 import LessonService from '../services/lesson.service';
-import { SessionStore } from '../storage';
+import { SessionStore, useLessonStore } from '../storage';
 import router from '../router';
 import { routes } from '../constants';
 
 const lessons = ref<Lesson[]>([])
 const user = ref<User | null>(null)
+
+const lessonStore = useLessonStore()
 
 async function getLessons() {
     try {
@@ -19,7 +21,8 @@ async function getLessons() {
 }
 
 function startLesson(lesson: Lesson) {
-    router.push({ path: routes.lessonArea, query: { lesson: JSON.stringify(lesson) } });
+    lessonStore.setLesson(lesson)
+    router.push({ path: routes.lessonArea });
 }
 
 onMounted(async () => await getLessons())
