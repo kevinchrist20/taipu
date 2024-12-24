@@ -8,6 +8,7 @@ mod utils;
 
 use commands::user_commands;
 use commands::utils_commands;
+use commands::lessons_commands;
 use db::db_client;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -22,7 +23,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             utils_commands::exit_app,
             user_commands::get_all_users,
-            user_commands::add_user
+            user_commands::add_user,
+            lessons_commands::get_lessons_by_difficulty,
+            lessons_commands::get_lesson_tests
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
