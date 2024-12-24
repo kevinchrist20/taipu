@@ -5,6 +5,7 @@ import UtilsService from '../services/util.service';
 import { computed, onMounted, ref } from 'vue';
 import { User } from '../types/bindings';
 import router from '../router';
+import { SessionStore } from '../storage';
 
 const users = ref<User[]>([]);
 
@@ -12,7 +13,7 @@ const homeScreenOptions = computed(() => [
   {
     title: "Continue Lesson",
     disabled: users.value.length === 0,
-    action: () => console.log("Continue Lesson")
+    action: () => continueLesson
   },
   {
     title: "Start New Lesson",
@@ -42,6 +43,11 @@ async function getUsers() {
   } catch (error) {
     console.error(error);
   }
+}
+
+function continueLesson() {
+  SessionStore.setUser(users.value[0]);
+  router.push({ path: '/lessons' });
 }
 
 onMounted(async () => await getUsers())
