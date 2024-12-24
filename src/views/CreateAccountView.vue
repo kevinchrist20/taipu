@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { difficultyOptions, keyboardOptions, languageOptions, themeOptions } from '../types';
 import UserService from '../services/user.service';
 import useAlert from '../utils/useAlert';
+import router from '../router';
 
 const name = ref('');
 const username = ref('');
@@ -30,7 +31,7 @@ function createAccount() {
         lessonDifficulty: lessonDifficulty.value?.toLowerCase(),
     }).then(() => {
         useAlert().setAlert({ message: 'Account created successfully', type: 'success' }); 
-        goBack();
+        router.back();
     }).catch((error) => {
         useAlert().setAlert({ message: error, type: 'danger' })
     }).finally(() => {
@@ -38,16 +39,12 @@ function createAccount() {
     });
 }
 
-function goBack() {
-    window.history.back();
-}
-
 </script>
 
 <template>
     <div class="flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white font-mono px-6 relative">
         <!-- Back Button -->
-        <button @click="goBack"
+        <button @click="router.back()"
             class="absolute top-4 left-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-transform transform hover:scale-110">
             <!-- Back Icon -->
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
