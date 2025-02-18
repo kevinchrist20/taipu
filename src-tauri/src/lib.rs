@@ -6,16 +6,34 @@ mod models;
 mod services;
 mod utils;
 
+use commands::lessons_commands;
 use commands::user_commands;
 use commands::utils_commands;
-use commands::lessons_commands;
 use db::db_client;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .setup(|_app| {
+        .setup(|app| {
             db_client::init_db();
+
+            let window = app.get_webview_window("main").unwrap();
+            #[cfg(target_os = "macos")]
+            window
+                .eval(
+                    r#"
+                window.addEventListener('keydown', (e) => {
+                    const isContentEditable = document.activeElement.isContentEditable;
+                    if (e.key === 'Backspace' && 
+                        !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) &&
+                        !isContentEditable) {
+                        e.preventDefault();
+                    }
+                });
+            "#,
+                )
+                .unwrap();
 
             Ok(())
         })
