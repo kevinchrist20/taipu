@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import Rate from '../components/Rate.vue';
-import { useLessonStore } from '../storage';
+import { SessionStore, useLessonStore } from '../storage';
 import Keyboard from '../components/Keyboard.vue';
+import LessonService from '../services/lesson.service';
+import router from '../router';
+import { routes } from '../constants';
 
 const lessonStore = useLessonStore()
 const testLesson = lessonStore.currentLesson;
+const user = SessionStore.user;
 
 const currentPosition = ref(0)
 const typedText = ref('')
 const nextKey = computed(() => testLesson?.content[currentPosition.value])
 const secondsElapsed = ref(0)
 const timerRunning = ref(false)
+const lessonCompleted = ref(false)
 
 let timerInterval: number | undefined
 
@@ -70,7 +75,25 @@ function onKeyPress(key: string) {
 
     if (currentPosition.value >= (testLesson?.content.length || 0)) {
         stopTimer()
+        completeLesson()
     }
+}
+
+// Mark lesson as completed
+async function completeLesson() {
+    if (lessonCompleted.value || !testLesson || !user) return;
+    
+    try {
+        await LessonService.completeLesson(user.id, testLesson.id);
+        lessonCompleted.value = true;
+    } catch (error) {
+        console.error("Error completing lesson:", error);
+    }
+}
+
+// Function to return to lessons view
+function returnToLessons() {
+    router.push({ path: routes.lessons });
 }
 </script>
 
@@ -78,9 +101,15 @@ function onKeyPress(key: string) {
     <div class="flex flex-col h-screen bg-gray-800 text-white">
         <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20">
             <div class="flex-grow overflow-auto p-4 h-[40rem]">
-                <h2 class="text-2xl font-bold mb-6 text-gray-300">
-                    {{ testLesson?.title }}
-                </h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-300">
+                        {{ testLesson?.title }}
+                    </h2>
+                    <button v-if="lessonCompleted" @click="returnToLessons"
+                        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md transition-transform hover:scale-105">
+                        Return to Lessons
+                    </button>
+                </div>
 
                 <Rate :rate-info />
 
@@ -98,6 +127,13 @@ function onKeyPress(key: string) {
                         </span>
                     </div>
                 </main>
+
+                <!-- Success Message for Completed Lesson -->
+                <div v-if="lessonCompleted" 
+                    class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-700 text-white p-6 rounded-lg shadow-lg z-10 animate-bounce">
+                    <h3 class="text-xl font-bold mb-2">Lesson Completed!</h3>
+                    <p>Great job! You can now proceed to the next lesson.</p>
+                </div>
 
                 <!-- Keyboard Area -->
                 <footer class="bg-gray-900 p-4 fixed bottom-0 left-0 w-full">
