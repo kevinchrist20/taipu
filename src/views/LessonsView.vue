@@ -5,6 +5,7 @@ import LessonService from '../services/lesson.service';
 import { SessionStore, useLessonStore } from '../storage';
 import router from '../router';
 import { routes } from '../constants';
+import BackButton from '../components/BackButton.vue';
 
 const lessons = ref<Lesson[]>([])
 const completedLessons = ref<number[]>([])
@@ -43,14 +44,7 @@ onMounted(async () => await getLessons())
 <template>
     <div class="flex flex-col items-center min-h-screen bg-gray-800 text-white font-mono px-6 pt-12">
         <!-- Back Button -->
-        <button @click="router.back()"
-            class="absolute top-4 left-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-transform transform hover:scale-110">
-            <!-- Back Icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-        </button>
+        <BackButton />
 
         <!-- Header -->
         <h1 class="text-3xl font-bold mb-8 capitalize">{{ user?.lessonDifficulty }} Lessons</h1>
