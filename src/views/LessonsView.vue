@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref } from 'vue';
 import { Lesson, User } from '../types/bindings';
 import LessonService from '../services/lesson.service';
 import { SessionStore, useLessonStore } from '../storage';
@@ -14,11 +14,11 @@ const lessonStore = useLessonStore()
 
 async function getLessons() {
     try {
-        user.value = SessionStore.user as User;
+        user.value = SessionStore.user;
+        if (!user.value) return;
+
         lessons.value = await LessonService.getLessons(user.value.lessonDifficulty || '');
-        if (user.value) {
-            completedLessons.value = await LessonService.getCompletedLessons(user.value.id);
-        }
+        completedLessons.value = await LessonService.getCompletedLessons(user.value.id);
     } catch (error) {
         console.error(error);
     }
@@ -29,11 +29,9 @@ function startLesson(lesson: Lesson) {
     router.push({ path: routes.lessonArea });
 }
 
-// Check if lesson is available or locked
-function isLessonAvailable(lessonId: number, index: number): boolean {
-    // First lesson is always available
+function isLessonAvailable(index: number): boolean {
     if (index === 0) return true;
-    
+
     // If previous lesson is completed, this lesson is available
     const previousLessonId = lessons.value[index - 1]?.id;
     return completedLessons.value.includes(previousLessonId);
@@ -62,31 +60,20 @@ onMounted(async () => await getLessons())
             <!-- Lessons Grid -->
             <div v-if="lessons.length" class="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4">
                 <div v-for="(lesson, index) in lessons" :key="lesson.id"
-                    :class="`bg-gray-900 rounded-lg shadow-md p-6 transition-transform ${isLessonAvailable(lesson.id, index) ? 'hover:bg-gray-700 hover:scale-105' : 'opacity-60 cursor-not-allowed'}`">
+                    :class="`bg-gray-900 rounded-lg shadow-md p-6 transition-transform ${isLessonAvailable(index) ? 'hover:bg-gray-700 hover:scale-105' : 'opacity-60 cursor-not-allowed'}`">
                     <div class="flex justify-between items-start mb-2">
                         <h2 class="text-xl font-semibold">{{ lesson.title }}</h2>
-                        <div v-if="!isLessonAvailable(lesson.id, index)" class="text-yellow-500">
-                            <!-- Lock Icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div v-else-if="completedLessons.includes(lesson.id)" class="text-green-500">
-                            <!-- Completed Icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
+                        <v-icon v-if="!isLessonAvailable(index)" name="fc-lock" />
+                        <v-icon v-else-if="completedLessons.includes(lesson.id)" name="fc-ok" />
                     </div>
                     <p class="text-sm text-gray-400 mb-4">{{ lesson.content }}</p>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-400">Difficulty: {{ lesson.difficulty }}</span>
                         <button
                             class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-md transition-transform hover:scale-105"
-                            @click="startLesson(lesson)"
-                            :disabled="!isLessonAvailable(lesson.id, index)"
-                            :class="{ 'opacity-50 cursor-not-allowed': !isLessonAvailable(lesson.id, index) }">
-                            {{ isLessonAvailable(lesson.id, index) ? 'Start Lesson' : 'Locked' }}
+                            @click="startLesson(lesson)" :disabled="!isLessonAvailable(index)"
+                            :class="{ 'opacity-50 cursor-not-allowed': !isLessonAvailable(index) }">
+                            {{ completedLessons.includes(lesson.id) ? 'Retake' : 'Start Lesson' }}
                         </button>
                     </div>
                 </div>
@@ -97,5 +84,3 @@ onMounted(async () => await getLessons())
         </div>
     </div>
 </template>
-
-<style scoped></style>

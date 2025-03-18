@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, shallowRef, ref } from 'vue'
 import { createKeyType } from '../types'
 
 const { complete, next } = defineProps<{ complete: boolean, next?: string }>()
-const emit = defineEmits<{ (e: 'key-pressed', key: string): void }>()
+const emit = defineEmits<(e: 'key-pressed', key: string) => void>()
 
 const keyboard = [
   ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace'],

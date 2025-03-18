@@ -113,7 +113,7 @@ async function completeLesson() {
 }
 
 function returnToLessons() {
-    router.push({ path: routes.lessons });
+    router.replace({ path: routes.lessons });
 }
 
 function retryLesson() {
@@ -131,12 +131,12 @@ function getDifficultyRequirements() {
 }
 
 function calculateGrade() {
-    const reqs = userLessonRequirements.value;
+    const requirements = userLessonRequirements.value;
 
-    if (rateInfo.accuracy >= reqs.accuracy + 10 && rateInfo.wpm >= reqs.wpm + 10) return 'S';
-    if (rateInfo.accuracy >= reqs.accuracy + 5 && rateInfo.wpm >= reqs.wpm + 5) return 'A';
-    if (rateInfo.accuracy >= reqs.accuracy && rateInfo.wpm >= reqs.wpm) return 'B';
-    if (rateInfo.accuracy >= reqs.accuracy - 10 && rateInfo.wpm >= reqs.wpm - 5) return 'C';
+    if (rateInfo.accuracy >= requirements.accuracy + 10 && rateInfo.wpm >= requirements.wpm + 10) return 'S';
+    if (rateInfo.accuracy >= requirements.accuracy + 5 && rateInfo.wpm >= requirements.wpm + 5) return 'A';
+    if (rateInfo.accuracy >= requirements.accuracy && rateInfo.wpm >= requirements.wpm) return 'B';
+    if (rateInfo.accuracy >= requirements.accuracy - 10 && rateInfo.wpm >= requirements.wpm - 5) return 'C';
     return 'D';
 }
 
@@ -149,9 +149,15 @@ onMounted(() => {
     <div class="flex flex-col h-screen bg-gray-800 text-white">
         <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20">
             <div class="flex-grow overflow-auto p-4 h-[40rem]">
-                <h2 class="text-2xl font-bold text-gray-300">
-                    {{ activeLesson?.title }}
-                </h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-300">
+                        {{ activeLesson?.title }}
+                    </h2>
+                    <button v-if="lessonCompleted" @click="returnToLessons"
+                        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md transition-transform hover:scale-105">
+                        Return to Lessons
+                    </button>
+                </div>
 
                 <Rate :rate-info />
 
@@ -268,7 +274,7 @@ onMounted(() => {
     </div>
 </template>
 
-<style>
+<style scoped>
 .lesson-area {
     font-size: 1.5rem;
     line-height: 2rem;
