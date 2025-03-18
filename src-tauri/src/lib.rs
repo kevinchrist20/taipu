@@ -43,7 +43,9 @@ pub fn run() {
             user_commands::get_all_users,
             user_commands::add_user,
             lessons_commands::get_lessons_by_difficulty,
-            lessons_commands::get_lesson_tests
+            lessons_commands::get_lesson_tests,
+            lessons_commands::complete_lesson,
+            lessons_commands::get_completed_lessons,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
