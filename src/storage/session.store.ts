@@ -1,11 +1,12 @@
 import { reactive } from "vue";
 import { StorageService } from "../services";
+import { User } from "../types/bindings";
 
 export const SessionStore = reactive({
-    user: StorageService.get<Record<string, any>>("user") || null,
+    user: StorageService.get<User>("user") || null,
     theme: StorageService.get<string>("theme") ?? "LIGHT",
   
-    setUser(user: Record<string, any>) {
+    setUser(user: User) {
       this.user = user;
       StorageService.set("user", user);
     },

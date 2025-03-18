@@ -40,3 +40,9 @@ export const difficultyOptions = [
     { value: 'INTERMEDIATE', label: 'Intermediate' },
     { value: 'ADVANCED', label: 'Advanced' },
 ];
+
+export const difficultyRequirements: Record<string, {accuracy: number, wpm: number}> = {
+    beginner: { accuracy: 80, wpm: 15 },
+    intermediate: { accuracy: 85, wpm: 30 },
+    advanced: { accuracy: 90, wpm: 40 }
+}
