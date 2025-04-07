@@ -4,10 +4,15 @@ import "./assets/tailwind.css";
 import App from "./App.vue";
 import router from "./router";
 import { createPinia } from "pinia";
+import { OhVueIcon, addIcons } from "oh-vue-icons";
+import { FcLock, FcOk } from "oh-vue-icons/icons";
 
 const pinia = createPinia();
+
+addIcons(FcLock, FcOk);
 
 createApp(App)
     .use(pinia)
     .use(router)
+    .component("v-icon", OhVueIcon)
     .mount("#app");

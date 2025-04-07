@@ -25,7 +25,7 @@ const timer = computed(() => {
 
     <div class="col-span-4" :class="rateInfo.percentComplete === 0 && 'opacity-30'">
       <h1 class="font-semibold text-sm">WPM</h1>
-      <div class="text-2xl font-semibold">{{ rateInfo.wpm }}%</div>
+      <div class="text-2xl font-semibold">{{ rateInfo.wpm }}</div>
     </div>
  </div>
   </div>

@@ -4,6 +4,7 @@ import { difficultyOptions, keyboardOptions, languageOptions, themeOptions } fro
 import UserService from '../services/user.service';
 import useAlert from '../utils/useAlert';
 import router from '../router';
+import BackButton from '../components/BackButton.vue';
 
 const name = ref('');
 const username = ref('');
@@ -30,7 +31,7 @@ function createAccount() {
         theme: theme.value?.toLowerCase(),
         lessonDifficulty: lessonDifficulty.value?.toLowerCase(),
     }).then(() => {
-        useAlert().setAlert({ message: 'Account created successfully', type: 'success' }); 
+        useAlert().setAlert({ message: 'Account created successfully', type: 'success' });
         router.back();
     }).catch((error) => {
         useAlert().setAlert({ message: error, type: 'danger' })
@@ -44,14 +45,7 @@ function createAccount() {
 <template>
     <div class="flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white font-mono px-6 relative">
         <!-- Back Button -->
-        <button @click="router.go(-1)"
-            class="absolute top-4 left-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-transform transform hover:scale-110">
-            <!-- Back Icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-        </button>
+        <BackButton />
 
         <div class="bg-gray-900 rounded-lg shadow-lg p-8 w-full max-w-lg">
             <h1 class="text-3xl font-bold text-center mb-6">Create Account</h1>
