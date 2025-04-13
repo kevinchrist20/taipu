@@ -21,7 +21,7 @@ Perfect for learners, students, and professionals looking to sharpen their typin
 
 ## Installation
 
-Download the latest version for your platform from the [Releases](https://github.com/yourusername/taipu/releases) page.
+Download the latest version for your platform from the [Releases](https://github.com/kevinchrist20/taipu/releases) page.
 
 ## Development
 

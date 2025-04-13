@@ -96,16 +96,16 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
           
-  create-release:
-    needs: [get-version, build-tauri]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create Release
-        uses: ncipollo/release-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: v${{ needs.get-version.outputs.version }}
-          name: Release v${{ needs.get-version.outputs.version }}
-          generateReleaseNotes: true
-          draft: false
-          prerelease: false
+#   create-release:
+#     needs: [get-version, build-tauri]
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Create Release
+#         uses: ncipollo/release-action@v1
+#         with:
+#           token: ${{ secrets.GITHUB_TOKEN }}
+#           tag: v${{ needs.get-version.outputs.version }}
+#           name: Release v${{ needs.get-version.outputs.version }}
+#           generateReleaseNotes: true
+#           draft: false
+#           prerelease: false
