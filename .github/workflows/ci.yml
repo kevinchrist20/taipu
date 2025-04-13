@@ -4,6 +4,12 @@ on:
     branches:
       - master
 
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   get-version:
     runs-on: ubuntu-latest
