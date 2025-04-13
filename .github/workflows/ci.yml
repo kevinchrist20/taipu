@@ -26,6 +26,8 @@ jobs:
         with:
           fetch-depth: 0
       - name: Create Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=${{ needs.get-version.outputs.version }}
           git config --local user.email "action@github.com"
