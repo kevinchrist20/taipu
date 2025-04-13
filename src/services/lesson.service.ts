@@ -8,4 +8,12 @@ export default {
         });
         return lessons;
     },
+    
+    async completeLesson(userId: number, lessonId: number): Promise<void> {
+        await invoke('complete_lesson', { userId, lessonId });
+    },
+    
+    async getCompletedLessons(userId: number): Promise<number[]> {
+        return await invoke('get_completed_lessons', { userId });
+    }
 }

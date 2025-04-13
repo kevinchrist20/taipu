@@ -1,4 +1,5 @@
 export * from './User'
-export * from './Lesson'
 export * from './LessonTest'
 export * from './NewUser'
+export * from './Lesson'
+export * from './UserCompletedLesson'

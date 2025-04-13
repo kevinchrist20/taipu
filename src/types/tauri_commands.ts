@@ -12,6 +12,14 @@ export type TauriCommands = {
         returns: LessonTest[],
         args: { id: number }
     },
+    complete_lesson: {
+        returns: void,
+        args: { userId: number, lessonId: number }
+    },
+    get_completed_lessons: {
+        returns: number[],
+        args: { userId: number }
+    },
     get_all_users: {
         returns: User[],
         args: undefined

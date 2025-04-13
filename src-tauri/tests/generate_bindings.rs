@@ -162,7 +162,7 @@ mod test {
                                 {
                                     let (ts_type, imports) = rust_type_to_ts(&pat_type.ty);
                                     all_imports.extend(imports);
-                                    arg_types.push(format!("{}: {}", pat_ident.ident, ts_type));
+                                    arg_types.push(format!("{}: {}", to_camel_case(&pat_ident.ident.to_string()), ts_type));
                                 }
                             }
                         }
