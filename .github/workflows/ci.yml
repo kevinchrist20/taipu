@@ -46,18 +46,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-latest, windows-latest]
-        include:
-          - platform: macos-latest
-            target: [aarch64-apple-darwin, x86_64-apple-darwin]
-          - platform: ubuntu-latest
-            target: [linux-x86_64]
-          - platform: windows-latest
-            target: [windows-x86_64]
+          include:
+            - platform: 'macos-latest' # for Arm based macs (M1 and above).
+              args: '--target aarch64-apple-darwin'
+            - platform: 'macos-latest' # for Intel based macs.
+              args: '--target x86_64-apple-darwin'
+            - platform: 'ubuntu-22.04'
+              args: ''
+            - platform: 'windows-latest'
+              args: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - run: npm i -g --force corepack && corepack enable
 
@@ -69,15 +70,17 @@ jobs:
           cache: pnpm
           cache-dependency-path: '**/pnpm-lock.yaml'
           
-      - name: Install Rust
+      - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
+        with:
+            targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
         
       - name: Install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-0 libwebkit2gtk-4.1-0 libappindicator3-1
-          
+          sudo apt-get install -y libgtk-3-0 libwebkit2gtk-4.1-0 libappindicator3-1 librsvg2-dev patchelf
+
       - name: Install frontend dependencies
         run: pnpm install
           
@@ -91,7 +94,7 @@ jobs:
           releaseBody: "See the assets to download this version and install."
           releaseDraft: false
           prerelease: false
-          args: ${{ matrix.platform == 'ubuntu-latest' && '--bundles deb rpm appimage flatpak' || '' }}
+          args: ${{ matrix.args }}
           
   create-release:
     needs: [get-version, build-tauri]
