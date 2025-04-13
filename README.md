@@ -1,16 +1,61 @@
-# Tauri + Vue + TypeScript
+# Taipu – A Modern Typing Trainer App
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+![Built with Tauri](https://img.shields.io/badge/Built%20with-Tauri-blue)
+![Vue 3](https://img.shields.io/badge/Vue-3-brightgreen)
+![TypeScript](https://img.shields.io/badge/TypeScript-blue)
 
-## Recommended IDE Setup
+Taipu is a sleek, lightweight desktop application that helps users improve their typing speed and accuracy through structured lessons and real-time performance tracking. Designed with a clean, responsive interface, Taipu guides learners from the basics of the home row to full keyboard mastery.
+
+Built using Vue 3, TypeScript, and Tailwind CSS, and powered by Tauri for a high-performance native experience, Taipu runs smoothly across platforms with minimal system resources.
+
+## Key Features
+
+- 📚 Progressive typing lessons (Home Row → Full Keyboard)
+- 🧠 Real-time feedback with WPM and accuracy tracking
+- 📈 Typing tests to track skill development and unlock new levels
+- 💾 Local data storage and offline use
+- 🌙 Clean, distraction-free UI with light/dark mode
+- ⚡ Fast and secure with native performance via Tauri
+
+Perfect for learners, students, and professionals looking to sharpen their typing skills with a beautiful and focused environment.
+
+## Installation
+
+Download the latest version for your platform from the [Releases](https://github.com/yourusername/taipu/releases) page.
+
+## Development
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v20 or newer)
+- [Rust](https://www.rust-lang.org/tools/install)
+- [pnpm](https://pnpm.io/installation)
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/kevinchrist20/taipu.git
+cd taipu
+
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm launch
+```
+
+### Recommended IDE Setup
 
 - [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
 
-## Type Support For `.vue` Imports in TS
+### Building
 
-Since TypeScript cannot handle type information for `.vue` imports, they are shimmed to be a generic Vue component type by default. In most cases this is fine if you don't really care about component prop types outside of templates. However, if you wish to get actual prop types in `.vue` imports (for example to get props validation when using manual `h(...)` calls), you can enable Volar's Take Over mode by following these steps:
+```bash
+pnpm build
+pnpm tauri build
+```
 
-1. Run `Extensions: Show Built-in Extensions` from VS Code's command palette, look for `TypeScript and JavaScript Language Features`, then right click and select `Disable (Workspace)`. By default, Take Over mode will enable itself if the default TypeScript extension is disabled.
-2. Reload the VS Code window by running `Developer: Reload Window` from the command palette.
+## License
 
-You can learn more about Take Over mode [here](https://github.com/johnsoncodehk/volar/discussions/471).
+[MIT](LICENSE)

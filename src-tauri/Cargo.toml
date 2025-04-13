@@ -1,7 +1,7 @@
 [package]
 name = "Taipu"
 version = "0.1.0"
-description = "A Tauri app for learning typing"
+description = "A modern typing trainer app that helps users improve typing speed and accuracy through structured lessons and performance tracking"
 authors = ["you"]
 edition = "2021"
 
