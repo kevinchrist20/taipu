@@ -70,7 +70,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: '**/pnpm-lock.yaml'
           
-      - name: install Rust stable
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
             targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
