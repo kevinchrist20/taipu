@@ -7,7 +7,7 @@ CREATE TABLE
         difficulty TEXT NOT NULL,
         language TEXT NOT NULL,
         category TEXT NOT NULL, -- e.g., 'home-left', 'top-right', 'punctuation'
-        is_test BOOLEAN DEFAULT TRUE, -- false = lesson, true = test
+        is_test BOOLEAN DEFAULT FALSE, -- false = lesson, true = test
         parent_lesson_id INTEGER NULL, -- for tests, link back to lesson; NULL for lessons
         passing_wpm INTEGER NULL, -- only for tests
         accuracy_threshold INTEGER NULL, -- only for tests
