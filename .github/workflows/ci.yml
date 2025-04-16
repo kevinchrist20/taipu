@@ -41,61 +41,8 @@ jobs:
           git tag -a "v$VERSION" -m "Release v$VERSION"
           git push origin "v$VERSION"
 
-  build-tauri:
-    needs: [get-version, create-tag]
-    strategy:
-      fail-fast: false
-      matrix:
-          include:
-            - platform: 'macos-latest' # for Arm based macs (M1 and above).
-              args: '--target aarch64-apple-darwin'
-            - platform: 'macos-latest' # for Intel based macs.
-              args: '--target x86_64-apple-darwin'
-            - platform: 'ubuntu-22.04'
-              args: ''
-            - platform: 'windows-latest'
-              args: ''
-
-    runs-on: ${{ matrix.platform }}
-    steps:
-      - uses: actions/checkout@v4
-      
-      - run: npm i -g --force corepack && corepack enable
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: 'https://npm.pkg.github.com'
-          cache: pnpm
-          cache-dependency-path: '**/pnpm-lock.yaml'
-          
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
-        with:
-            targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
-        
-      - name: Install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev
-
-      - name: Install frontend dependencies
-        run: pnpm install
-          
-      - name: Build Tauri App
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
-          tagName: v${{ needs.get-version.outputs.version }}
-          args: ${{ matrix.args }}
-
   create-release:
-    needs: [get-version, build-tauri]
+    needs: [get-version, create-tag]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -124,12 +71,64 @@ jobs:
           body: ${{ steps.release_notes.outputs.body }}
           draft: false
           prerelease: true
-
       - name: Update CHANGELOG.md
         run: |
-            cat latest_release_notes.txt >> CHANGELOG.md
-            git config user.name "GitHub Action"
-            git config user.email "action@github.com"
-            git add CHANGELOG.md
-            git commit -m "Update CHANGELOG.md for release v${{ needs.get-version.outputs.version }}"
-            git push origin HEAD:master
+          cat latest_release_notes.txt >> CHANGELOG.md
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md for release v${{ needs.get-version.outputs.version }}"
+          git push origin HEAD:master
+
+  build-tauri:
+    needs: [get-version, create-tag, create-release]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - run: npm i -g --force corepack && corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://npm.pkg.github.com'
+          cache: pnpm
+          cache-dependency-path: '**/pnpm-lock.yaml'
+          
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+        
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev
+
+      - name: Install frontend dependencies
+        run: pnpm install
+          
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: v${{ needs.get-version.outputs.version }}
+          releaseId: ${{ needs.create-release.outputs.id }}
+          args: ${{ matrix.args }}
