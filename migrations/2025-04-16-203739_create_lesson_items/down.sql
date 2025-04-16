@@ -1,2 +1,2 @@
 -- This file should undo anything in `up.sql`
-DROP TABLE user_completed_lessons;
+DROP TABLE lesson_items

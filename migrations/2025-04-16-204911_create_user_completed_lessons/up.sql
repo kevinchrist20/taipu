@@ -1,5 +1,5 @@
 -- Your SQL goes here
-CREATE TABLE IF NOT EXISTS user_completed_lessons (
+    CREATE TABLE IF NOT EXISTS user_completed_lessons (
     user_id INTEGER NOT NULL,
     lesson_id INTEGER NOT NULL,
     PRIMARY KEY (user_id, lesson_id),
