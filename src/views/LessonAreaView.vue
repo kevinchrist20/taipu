@@ -19,6 +19,7 @@ const secondsElapsed = ref(0);
 const timerRunning = ref(false);
 const lessonCompleted = ref(false);
 const showStatsModal = ref(false);
+const isPaused = ref(false);
 const grade = ref('');
 const userLessonRequirements = ref({ accuracy: 0, wpm: 0 });
 
@@ -68,9 +69,21 @@ function stopTimer() {
     }
 }
 
+function togglePause() {
+    if (currentPosition.value === 0 || lessonCompleted.value || showStatsModal.value) return;
+
+    isPaused.value = !isPaused.value;
+
+    if (isPaused.value) {
+        stopTimer();
+    } else {
+        startTimer();
+    }
+}
+
 // Handle key press
 function onKeyPress(key: string) {
-    if (lessonCompleted.value || showStatsModal.value) return;
+    if (lessonCompleted.value || showStatsModal.value || isPaused.value) return;
 
     if (!timerRunning.value)
         startTimer()
@@ -140,23 +153,67 @@ function calculateGrade() {
     return 'D';
 }
 
+function confirmExit() {
+    if (currentPosition.value > 0 && !lessonCompleted.value && !showStatsModal.value) {
+        if (confirm('Are you sure you want to exit this lesson? Your progress will be lost.')) {
+            returnToLessons();
+        }
+    } else {
+        returnToLessons();
+    }
+}
+
 onMounted(() => {
     getDifficultyRequirements();
+
+    // Add keyboard shortcuts for pause and exit
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            togglePause();
+        }
+    });
 });
 </script>
 
 <template>
-    <div class="flex flex-col h-screen bg-gray-800 text-white">
+    <div class="flex flex-col h-screen bg-gray-800 text-white relative">
         <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20">
             <div class="flex-grow overflow-auto p-4 h-[40rem]">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-300">
-                        {{ activeLesson?.title }}
-                    </h2>
-                    <button v-if="lessonCompleted" @click="returnToLessons"
-                        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md transition-transform hover:scale-105">
-                        Return to Lessons
-                    </button>
+                    <div class="flex items-center">
+                        <h2 class="text-2xl font-bold text-gray-300">
+                            {{ activeLesson?.title }}
+                        </h2>
+                    </div>
+                    <div class="flex space-x-3">
+                        <!-- Pause/Resume Button -->
+                        <button @click="togglePause"
+                            class="p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-transform hover:scale-110"
+                            :class="{ 'bg-green-600 hover:bg-green-700': isPaused }">
+                            <svg v-if="!isPaused" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </button>
+
+                        <!-- Exit Button -->
+                        <button @click="confirmExit"
+                            class="p-2 rounded-full bg-red-600 hover:bg-red-700 text-white transition-transform hover:scale-110">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <Rate :rate-info />
@@ -262,6 +319,35 @@ onMounted(() => {
                                 Meet the required accuracy and WPM to continue to the next lesson.
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Pause Overlay -->
+                <div v-if="isPaused"
+                    class="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-80 rounded-lg">
+                    <div class="text-center p-8">
+                        <h3 class="text-3xl font-bold mb-4">Lesson Paused</h3>
+                        <p class="text-gray-300 mb-6">Click the button below to resume your lesson.</p>
+                        <button @click="togglePause"
+                            class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-md transition transform hover:scale-105 flex items-center justify-center mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Resume
+                        </button>
+                        <button @click="confirmExit"
+                            class="mt-4 px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-md transition transform hover:scale-105 flex items-center justify-center mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4a1 1 0 10-2 0v4.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L14 11.586V7z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Exit Lesson
+                        </button>
                     </div>
                 </div>
 

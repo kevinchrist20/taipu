@@ -11,5 +11,5 @@ CREATE TABLE
         theme VARCHAR NOT NULL DEFAULT 'LIGHT' CHECK (theme IN ('LIGHT', 'DARK')),
         lesson_difficulty VARCHAR NOT NULL DEFAULT 'BEGINNER' CHECK (
             lesson_difficulty IN ('BEGINNER', 'INTERMEDIATE', 'ADVANCED')
-        ),
+        )
     );

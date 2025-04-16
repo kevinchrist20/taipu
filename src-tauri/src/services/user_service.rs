@@ -25,7 +25,10 @@ pub fn create_user(new_user: &NewUser) -> Result<(), String> {
     {
         Ok(_) => Ok(()),
         Err(e) => {
-            if let diesel::result::Error::DatabaseError(diesel::result::DatabaseErrorKind::UniqueViolation, _,) = e
+            if let diesel::result::Error::DatabaseError(
+                diesel::result::DatabaseErrorKind::UniqueViolation,
+                _,
+            ) = e
             {
                 Err("A user with this username already exists.".to_string())
             } else {

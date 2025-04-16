@@ -46,7 +46,10 @@ fn get_db_path() -> String {
 
 fn run_migrations() {
     let mut connection = migration_conn();
-    connection.run_pending_migrations(MIGRATIONS).unwrap();
+    if let Err(e) = connection.run_pending_migrations(MIGRATIONS) {
+        eprintln!("Migration error: {e:?}");
+        std::process::exit(1);
+    }
 }
 
 fn migration_conn() -> SqliteConnection {
