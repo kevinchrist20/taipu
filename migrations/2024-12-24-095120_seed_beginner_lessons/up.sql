@@ -51,8 +51,7 @@ VALUES
         'BEGINNER',
         'jkl jkl jkl; jkl jkl; jkl; ;lkj ;lkj ;lkj jkl; jkl jkl jkl jkl; jkl jkl; jkl; jkl; jkl; jkl; jkl; jkl; jkl; jkl; ;lkj ;lkj ;lkj ;lkj ;lkj jkl ;lk jkl ;lk lkj jkl jkl ;lk lkj jkl jkl lkj jkl ;lk lkj jkl jkl',
         'ENGLISH'
-    );
-
+    ),
     -- Home Row: Combined Hands Lessons
     (
         'Home Row: Combined (ASDF JKL;)',
@@ -70,6 +69,12 @@ VALUES
         'Home Row Combined 3',
         'BEGINNER',
         'a slack fjask; ajakad lad; a salad; all fall; a lass; ask dad; a fad; a flask; a fall; a klassj',
+        'ENGLISH'
+    ),
+    (
+        'Row Transition Drill: Top ↔ Home',
+        'BEGINNER',
+        'q a w s e d r f t g y h u j i k o l p ;',
         'ENGLISH'
     ),
     -- Top Row: Left Hand Lessons
@@ -111,6 +116,12 @@ VALUES
         'gold flakes wire apis disks leaf wake push oil repair quip sale dark jaws fluid operator',
         'ENGLISH'
     ),
+    (
+        'Row Transition Drill: Home ↔ Bottom',
+        'BEGINNER',
+        'a z s x d c f v g b h n j m k , l . ; /',
+        'ENGLISH'
+    ),
     -- Bottom Row: Left Hand Lessons
     (
         'Bottom Row: Left Hand (ZXCV)',
@@ -148,6 +159,27 @@ VALUES
         'Full Keyboard: Advanced',
         'BEGINNER',
         'pack my box with five dozen liquor jugs. how quickly daft jumping zebras vex. quiet jays form blazing wrecks.',
+        'ENGLISH'
+    ),
+    -- Punctuation Practice
+    (
+        'Punctuation Practice 1',
+        'BEGINNER',
+        'a. a! a? a, a. b! c? d. e! f? g. h! i? j. k! l? ; a. b. c, d! e? f; g, h. i! j;',
+        'ENGLISH'
+    ),
+    -- Common Words Practice
+    (
+        'Common Words Drill 1',
+        'BEGINNER',
+        'the and you that was for are with they this have from one had word but what some is it he',
+        'ENGLISH'
+    ),
+    -- Mini Story Practice
+    (
+        'Mini Story Practice',
+        'BEGINNER',
+        'The fox jumps over the lazy dog. It finds a quick path through the dense forest. Wind blows, leaves fall, yet the fox stays swift.',
         'ENGLISH'
     );
 
@@ -323,3 +355,79 @@ FROM
     lessons
 WHERE
     title = 'Full Keyboard: Advanced';
+
+INSERT INTO
+    tests (
+        lesson_id,
+        title,
+        content,
+        passing_wpm,
+        accuracy_threshold
+    )
+SELECT
+    id,
+    'Row Transition Proficiency',
+    'q a w s e d r f t g y h u j i k o l p ; a z s x d c f v g b h n j m k , l . ; /',
+    24,
+    88
+FROM
+    lessons
+WHERE
+    title = 'Row Transition Drill: Home ↔ Bottom';
+
+INSERT INTO
+    tests (
+        lesson_id,
+        title,
+        content,
+        passing_wpm,
+        accuracy_threshold
+    )
+SELECT
+    id,
+    'Punctuation Basics Proficiency',
+    'a. b! c? d. e! f? g. h! i? j. k! l? ; a. b. c, d! e? f; g, h. i! j;',
+    18,
+    85
+FROM
+    lessons
+WHERE
+    title = 'Punctuation Practice 1';
+
+INSERT INTO
+    tests (
+        lesson_id,
+        title,
+        content,
+        passing_wpm,
+        accuracy_threshold
+    )
+SELECT
+    id,
+    'Common Words Proficiency',
+    'the and you that was for are with they this have from one had word but what some is it he',
+    22,
+    90
+FROM
+    lessons
+WHERE
+    title = 'Common Words Drill 1';
+
+INSERT INTO
+    tests (
+        lesson_id,
+        title,
+        content,
+        passing_wpm,
+        accuracy_threshold
+    )
+SELECT
+    id,
+    'Story Typing Challenge',
+    'The fox jumps over the lazy dog. It finds a quick path through the dense forest. Wind blows, leaves fall, yet the fox stays swift.',
+    28,
+    90
+FROM
+    lessons
+WHERE
+    title = 'Mini Story Practice';
