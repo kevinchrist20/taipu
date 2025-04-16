@@ -54,7 +54,7 @@ jobs:
         run: npm install -g conventional-changelog-cli
       - name: Generate release notes
         run: |
-          conventional-changelog -p angular --releaseCount 1 -r 0 -o latest_release_notes.txt
+          conventional-changelog -p angular -r 0 -o latest_release_notes.txt
           cat latest_release_notes.txt
       - name: Read release notes
         id: release_notes
