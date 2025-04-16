@@ -148,19 +148,6 @@ VALUES
         'nm,. nm,. nm,. .,mn .,mn .,mn n.,m ,nm. m,n. .,mn nm,. .m,n n,.m m,n. .,mn nm,. m,n.',
         'ENGLISH'
     ),
-    -- Full Keyboard Practice
-    (
-        'Full Keyboard: Basic',
-        'BEGINNER',
-        'quick vexing wolf jumps amazed by plot. the five boxing wizards jump quickly. lazy dogs are jumping over the fence.',
-        'ENGLISH'
-    ),
-    (
-        'Full Keyboard: Advanced',
-        'BEGINNER',
-        'pack my box with five dozen liquor jugs. how quickly daft jumping zebras vex. quiet jays form blazing wrecks.',
-        'ENGLISH'
-    ),
     -- Punctuation Practice
     (
         'Punctuation Practice 1',
@@ -168,22 +155,26 @@ VALUES
         'a. a! a? a, a. b! c? d. e! f? g. h! i? j. k! l? ; a. b. c, d! e? f; g, h. i! j;',
         'ENGLISH'
     ),
-    -- Common Words Practice
+    -- Full Keyboard Practice
     (
-        'Common Words Drill 1',
+        'Full Keyboard: Basic',
         'BEGINNER',
         'the and you that was for are with they this have from one had word but what some is it he',
         'ENGLISH'
     ),
-    -- Mini Story Practice
     (
-        'Mini Story Practice',
+        'Full Keyboard: Basic 2',
         'BEGINNER',
-        'The fox jumps over the lazy dog. It finds a quick path through the dense forest. Wind blows, leaves fall, yet the fox stays swift.',
+        'quick vexing wolf jumps amazed by plot. the five boxing wizards jump quickly. lazy dogs are jumping over the fence.',
         'ENGLISH'
-    );
-
--- Insert associated test for the last lesson
+    ),
+    (
+        'Full Keyboard: Advanced',
+        'BEGINNER',
+        'pack my box with five dozen liquor jugs. how quickly daft jumping zebras vex. quiet jays form blazing wrecks.  Wind blows, leaves fall, yet the fox stays swift.',
+        'ENGLISH'
+    ),
+    -- Insert associated test for the last lesson
 INSERT INTO
     tests (
         lesson_id,
@@ -221,7 +212,7 @@ SELECT
 FROM
     lessons
 WHERE
-    title = 'JKL; Lesson 3';
+    title = 'JKL; Lesson 4';
 
 INSERT INTO
     tests (
@@ -393,41 +384,3 @@ FROM
     lessons
 WHERE
     title = 'Punctuation Practice 1';
-
-INSERT INTO
-    tests (
-        lesson_id,
-        title,
-        content,
-        passing_wpm,
-        accuracy_threshold
-    )
-SELECT
-    id,
-    'Common Words Proficiency',
-    'the and you that was for are with they this have from one had word but what some is it he',
-    22,
-    90
-FROM
-    lessons
-WHERE
-    title = 'Common Words Drill 1';
-
-INSERT INTO
-    tests (
-        lesson_id,
-        title,
-        content,
-        passing_wpm,
-        accuracy_threshold
-    )
-SELECT
-    id,
-    'Story Typing Challenge',
-    'The fox jumps over the lazy dog. It finds a quick path through the dense forest. Wind blows, leaves fall, yet the fox stays swift.',
-    28,
-    90
-FROM
-    lessons
-WHERE
-    title = 'Mini Story Practice';
