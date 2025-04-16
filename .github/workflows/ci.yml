@@ -97,17 +97,43 @@ jobs:
           releaseDraft: false
           prerelease: true
           args: ${{ matrix.args }}
-          
-#   create-release:
-#     needs: [get-version, build-tauri]
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Create Release
-#         uses: ncipollo/release-action@v1
-#         with:
-#           token: ${{ secrets.GITHUB_TOKEN }}
-#           tag: v${{ needs.get-version.outputs.version }}
-#           name: Release v${{ needs.get-version.outputs.version }}
-#           generateReleaseNotes: true
-#           draft: false
-#           prerelease: false
+
+  create-release:
+    needs: [get-version, build-tauri]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install conventional-changelog-cli
+        run: npm install -g conventional-changelog-cli
+      - name: Generate release notes
+        run: |
+          conventional-changelog -p angular --releaseCount 1 -r 0 -o latest_release_notes.txt
+          cat latest_release_notes.txt
+      - name: Read release notes
+        id: release_notes
+        run: |
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          cat latest_release_notes.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ needs.get-version.outputs.version }}
+          name: Release v${{ needs.get-version.outputs.version }}
+          body: ${{ steps.release_notes.outputs.body }}
+          draft: false
+          prerelease: true
+
+      - name: Update CHANGELOG.md
+        run: |
+            cat latest_release_notes.txt >> CHANGELOG.md
+            git config user.name "GitHub Action"
+            git config user.email "action@github.com"
+            git add CHANGELOG.md
+            git commit -m "Update CHANGELOG.md for release v${{ needs.get-version.outputs.version }}"
+            git push origin HEAD:master
