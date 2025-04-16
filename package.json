@@ -15,6 +15,7 @@
   "dependencies": {
     "@tauri-apps/api": ">=2.1.1",
     "@tauri-apps/plugin-shell": ">=2.0.1",
+    "@tauri-apps/plugin-updater": "~2",
     "oh-vue-icons": "1.0.0-rc3",
     "pinia": "^2.3.0",
     "vue": "^3.5.13",
