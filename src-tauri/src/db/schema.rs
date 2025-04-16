@@ -49,13 +49,6 @@ diesel::joinable!(tests -> lessons (lesson_id));
 diesel::joinable!(user_completed_lessons -> lessons (lesson_id));
 diesel::joinable!(user_completed_lessons -> users (user_id));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    lessons,
-    tests,
-    users,
-);
+diesel::allow_tables_to_appear_in_same_query!(lessons, tests, users,);
 
-diesel::allow_tables_to_appear_in_same_query!(
-    lessons,
-    user_completed_lessons,
-);
+diesel::allow_tables_to_appear_in_same_query!(lessons, user_completed_lessons,);

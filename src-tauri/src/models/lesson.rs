@@ -3,8 +3,7 @@ use diesel::prelude::{Insertable, Queryable};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-
-#[derive(Queryable, Debug, Serialize,  Deserialize, TS)]
+#[derive(Queryable, Debug, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct Lesson {

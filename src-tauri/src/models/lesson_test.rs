@@ -5,8 +5,7 @@ use diesel::prelude::{Insertable, Queryable};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-
-#[derive(Queryable, Debug, Serialize,  Deserialize, TS)]
+#[derive(Queryable, Debug, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct LessonTest {
@@ -30,4 +29,3 @@ pub struct NewTest {
     pub passing_wpm: i32,
     pub accuracy_threshold: i32,
 }
-
