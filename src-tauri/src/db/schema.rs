@@ -1,26 +1,19 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    lessons (id) {
+    lesson_items (id) {
         id -> Integer,
         title -> Text,
         content -> Text,
         difficulty -> Text,
         language -> Text,
+        category -> Text,
+        is_test -> Bool,
+        parent_lesson_id -> Nullable<Integer>,
+        passing_wpm -> Nullable<Integer>,
+        accuracy_threshold -> Nullable<Integer>,
         created_at -> Nullable<Timestamp>,
         updated_at -> Nullable<Timestamp>,
-    }
-}
-
-diesel::table! {
-    tests (id) {
-        id -> Integer,
-        lesson_id -> Integer,
-        title -> Text,
-        content -> Text,
-        passing_wpm -> Integer,
-        accuracy_threshold -> Integer,
-        created_at -> Nullable<Timestamp>,
     }
 }
 
@@ -45,10 +38,7 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(tests -> lessons (lesson_id));
-diesel::joinable!(user_completed_lessons -> lessons (lesson_id));
+diesel::joinable!(user_completed_lessons -> lesson_items (lesson_id));
 diesel::joinable!(user_completed_lessons -> users (user_id));
 
-diesel::allow_tables_to_appear_in_same_query!(lessons, tests, users,);
-
-diesel::allow_tables_to_appear_in_same_query!(lessons, user_completed_lessons,);
+diesel::allow_tables_to_appear_in_same_query!(lesson_items, user_completed_lessons,);
