@@ -1,4 +1,4 @@
-import { Lesson } from '../types/bindings';
+import { Lesson, LessonTest } from '../types/bindings';
 import { invoke } from '../types/tauri_commands';
 
 export default {
@@ -15,5 +15,9 @@ export default {
     
     async getCompletedLessons(userId: number): Promise<number[]> {
         return await invoke('get_completed_lessons', { userId });
+    },
+    
+    async getTestForLesson(lessonId: number): Promise<LessonTest[]> {
+        return await invoke('get_lesson_tests', { id: lessonId });
     }
 }
