@@ -71,14 +71,14 @@ jobs:
           body: ${{ steps.release_notes.outputs.body }}
           draft: false
           prerelease: true
-      - name: Update CHANGELOG.md
-        run: |
-          cat latest_release_notes.txt >> CHANGELOG.md
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md for release v${{ needs.get-version.outputs.version }}"
-          git push origin HEAD:master
+      # - name: Update CHANGELOG.md
+      #   run: |
+      #     cat latest_release_notes.txt >> CHANGELOG.md
+      #     git config user.name "GitHub Action"
+      #     git config user.email "action@github.com"
+      #     git add CHANGELOG.md
+      #     git commit -m "Update CHANGELOG.md for release v${{ needs.get-version.outputs.version }}"
+      #     git push origin HEAD:master
 
   build-tauri:
     needs: [get-version, create-tag, create-release]
