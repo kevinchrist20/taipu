@@ -19,6 +19,8 @@ pub fn get_users() -> Result<Vec<User>, String> {
 pub fn create_user(new_user: &NewUser) -> Result<(), String> {
     let conn = &mut db_conn();
 
+    println!("User: {:?}", new_user);
+
     match diesel::insert_into(users::table)
         .values(new_user)
         .execute(conn)

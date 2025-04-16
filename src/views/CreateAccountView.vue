@@ -26,10 +26,10 @@ function createAccount() {
     UserService.createUser({
         name: name.value?.toLowerCase(),
         username: username.value?.toLowerCase(),
-        keyboardType: keyboardType.value?.toLowerCase(),
-        language: language.value?.toLowerCase(),
-        theme: theme.value?.toLowerCase(),
-        lessonDifficulty: lessonDifficulty.value?.toLowerCase(),
+        keyboardType: keyboardType.value,
+        language: language.value,
+        theme: theme.value,
+        lessonDifficulty: lessonDifficulty.value,
     }).then(() => {
         useAlert().setAlert({ message: 'Account created successfully', type: 'success' });
         router.back();
