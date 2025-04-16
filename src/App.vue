@@ -2,6 +2,13 @@
 import { RouterView } from 'vue-router';
 import Alert from './components/alert/index.vue'
 
+import UtilService from './services/util.service';
+import { onMounted } from 'vue';
+
+onMounted(() => {
+  UtilService.checkForUpdates();
+});
+
 </script>
 
 <template>
@@ -11,5 +18,4 @@ import Alert from './components/alert/index.vue'
   </main>
 </template>
 
-<style>
-</style>
+<style></style>
