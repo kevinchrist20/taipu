@@ -32,3 +32,13 @@ pub struct NewLesson {
     pub language: Option<String>,
     pub category: String
 }
+
+#[derive(Serialize, Deserialize, Debug, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct CategoryWithLessons {
+    pub category: String,
+    pub lessons: Vec<Lesson>,
+    pub tests: Vec<Lesson>,
+    pub is_available: bool,
+}
