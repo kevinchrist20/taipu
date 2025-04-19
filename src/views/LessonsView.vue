@@ -1,47 +1,40 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue';
-import { Lesson, User, LessonTest } from '../types/bindings';
-import LessonService from '../services/lesson.service';
-import { SessionStore, useLessonStore } from '../storage';
-import router from '../router';
-import { routes } from '../constants';
+import { onMounted, ref, onUnmounted } from 'vue';
 import BackButton from '../components/BackButton.vue';
+import { routes } from '../constants';
+import router from '../router';
+import LessonService, { CategoryWithLessons } from '../services/lesson.service';
+import { SessionStore, useLessonStore } from '../storage';
+import { Lesson, User } from '../types/bindings';
 
-interface GroupedLessons {
-  title: string;
-  lessons: Lesson[];
-}
-
-const lessons = ref<Lesson[]>([]);
+const categories = ref<CategoryWithLessons[]>([]);
 const completedLessons = ref<number[]>([]);
 const user = ref<User | null>(null);
-const lessonTests = ref<Map<number, LessonTest[]>>(new Map());
-const expandedTests = ref<Set<number>>(new Set());
-const expandedContent = ref<Set<number>>(new Set());
-
 const lessonStore = useLessonStore();
+const loading = ref(false);
+const loadingMore = ref(false);
+const visibleCategoryCount = ref(1); // Start with one visible category
 
-async function getLessons() {
-  user.value = SessionStore.user;
-  if (!user.value) return;
-  lessons.value = await LessonService.getLessons(user.value.lessonDifficulty || '');
-  completedLessons.value = await LessonService.getCompletedLessons(user.value.id);
-  for (const lesson of lessons.value) {
-    const tests = await LessonService.getTestForLesson(lesson.id);
-    if (tests.length) lessonTests.value.set(lesson.id, tests);
+// Intersection Observer for infinite scrolling
+const observer = ref<IntersectionObserver | null>(null);
+const bottomMarker = ref<HTMLElement | null>(null);
+
+async function fetchData() {
+  try {
+    loading.value = true;
+    user.value = SessionStore.user;
+    if (!user.value) return;
+
+    categories.value = await LessonService.getLessonsByCategories(
+      user.value.lessonDifficulty || '',
+      user.value.id
+    );
+    completedLessons.value = await LessonService.getCompletedLessons(user.value.id);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  } finally {
+    loading.value = false;
   }
-}
-
-function toggleTestDetails(lessonId: number) {
-  expandedTests.value.has(lessonId)
-    ? expandedTests.value.delete(lessonId)
-    : expandedTests.value.add(lessonId);
-}
-
-function toggleContent(lessonId: number) {
-  expandedContent.value.has(lessonId)
-    ? expandedContent.value.delete(lessonId)
-    : expandedContent.value.add(lessonId);
 }
 
 function startLesson(lesson: Lesson) {
@@ -49,158 +42,154 @@ function startLesson(lesson: Lesson) {
   router.push({ path: routes.lessonArea });
 }
 
-function isLessonAvailable(index: number): boolean {
-  if (index === 0) return true;
-  const prev = lessons.value[index - 1]?.id;
-  return completedLessons.value.includes(prev);
+function startTest(test: Lesson) {
+  lessonStore.setLesson(test);
+  router.push({ path: routes.lessonArea });
 }
 
-// derive progress
-const progress = computed(() => {
-  return lessons.value.length
-    ? Math.round((completedLessons.value.length / lessons.value.length) * 100)
-    : 0;
-});
+function isLessonComplete(lessonId: number): boolean {
+  return completedLessons.value.includes(lessonId);
+}
 
-// group by row prefix in title
-const groups = computed<GroupedLessons[]>(() => {
-  const map = new Map<string, Lesson[]>();
-  for (const l of lessons.value) {
-    // assume titles start with e.g. "Home Row:" or "Top Row:"
-    const key = l.title.split(':')[0] + ':';
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(l);
+function isCategoryFullyCompleted(category: CategoryWithLessons): boolean {
+  // All lessons must be completed
+  const allLessonsCompleted = category.lessons.every(lesson => 
+    completedLessons.value.includes(lesson.id)
+  );
+  
+  // At least one test must be completed (if there are any tests)
+  const anyTestCompleted = category.tests.length === 0 || 
+    category.tests.some(test => completedLessons.value.includes(test.id));
+  
+  return allLessonsCompleted && anyTestCompleted;
+}
+
+// Function to load more categories when scrolling
+function loadMoreCategories() {
+  if (loadingMore.value) return;
+  if (visibleCategoryCount.value >= categories.value.length) return;
+  
+  loadingMore.value = true;
+  setTimeout(() => {
+    visibleCategoryCount.value += 1;
+    loadingMore.value = false;
+  }, 300); // Small delay to prevent too rapid loading
+}
+
+// Setup intersection observer for infinite scrolling
+function setupIntersectionObserver() {
+  observer.value = new IntersectionObserver((entries) => {
+    const entry = entries[0];
+    if (entry.isIntersecting) {
+      loadMoreCategories();
+    }
+  }, { threshold: 0.1 });
+  
+  if (bottomMarker.value) {
+    observer.value.observe(bottomMarker.value);
   }
-  return Array.from(map.entries()).map(([title, ls]) => ({ title, lessons: ls }));
+}
+
+onMounted(async () => {
+  await fetchData();
+  setupIntersectionObserver();
 });
 
-onMounted(getLessons);
+onUnmounted(() => {
+  if (observer.value && bottomMarker.value) {
+    observer.value.unobserve(bottomMarker.value);
+  }
+});
 </script>
 
 <template>
-  <div class="flex flex-col items-center min-h-screen bg-gray-800 text-white font-mono px-6 pt-6">
+  <div class="flex flex-col items-center min-h-screen bg-gray-800 text-white font-mono px-6 pt-12">
+    <!-- Back Button -->
     <BackButton />
 
-    <h1 class="text-3xl font-bold mb-4 capitalize">{{ user?.lessonDifficulty }} Lessons</h1>
+    <!-- Header -->
+    <h1 class="text-3xl font-bold mb-8 capitalize">{{ user?.lessonDifficulty }} Lessons</h1>
 
-    <!-- Progress Bar -->
-    <div class="w-full max-w-4xl mb-6">
-      <div class="bg-gray-700 rounded-full h-2 overflow-hidden">
-        <div
-          class="bg-indigo-500 h-2"
-          :style="{ width: `${progress}%` }"
-        ></div>
-      </div>
-      <p class="text-sm text-gray-400 mt-2">
-        {{ completedLessons.length }}/{{ lessons.length }} lessons completed
-      </p>
+    <!-- Loading State -->
+    <div v-if="loading" class="flex justify-center items-center h-64">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
     </div>
 
-    <!-- Lessons Sections -->
-    <div class="w-full max-w-4xl space-y-12 pb-12">
-      <div v-for="group in groups" :key="group.title">
-        <h2 class="text-2xl font-semibold mb-4">{{ group.title }}</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div
-            v-for="(lesson, idx) in group.lessons"
-            :key="lesson.id"
-            :class="[
-              'bg-gray-900 rounded-lg shadow-md p-8 transition-transform',
-              isLessonAvailable(idx) ? 'hover:bg-gray-700 hover:scale-105' : 'opacity-60 cursor-not-allowed'
-            ]"
-          >
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-xl font-semibold">{{ lesson.title }}</h3>
-              <div class="flex items-center space-x-2">
-                <span
-                  v-if="lessonTests.has(lesson.id)"
-                  class="px-2 py-1 text-xs bg-indigo-600 rounded-full"
-                >Test Available</span>
-                <i
-                  v-if="!isLessonAvailable(idx)"
-                  class="fas fa-lock text-gray-500"
-                ></i>
-                <i
-                  v-else-if="completedLessons.includes(lesson.id)"
-                  class="fas fa-check-circle text-green-400"
-                ></i>
-              </div>
-            </div>
-
-            <p
-              :class="[
-                'text-sm text-gray-400 mb-4',
-                expandedContent.has(lesson.id) ? '' : 'line-clamp-3'
-              ]"
-            >
-              {{ lesson.content }}
-            </p>
-            <button
-              v-if="lesson.content.split(' ').length > 20"
-              @click="toggleContent(lesson.id)"
-              class="text-xs text-indigo-300 mb-4"
-            >
-              {{ expandedContent.has(lesson.id) ? 'Show less' : 'Show more' }}
-            </button>
-
-            <!-- Test Details -->
-            <div v-if="lessonTests.has(lesson.id)" class="mb-4">
-              <button
-                @click="toggleTestDetails(lesson.id)"
-                class="text-sm text-indigo-400 flex items-center hover:text-indigo-300 mb-2"
-              >
-                <i
-                  :class="expandedTests.has(lesson.id)
-                    ? 'fas fa-chevron-down'
-                    : 'fas fa-chevron-right'"
-                  class="mr-1"
-                ></i>
-                Associated Test
-              </button>
-              <div
-                v-if="expandedTests.has(lesson.id)"
-                class="p-4 bg-gray-800 rounded-md space-y-3"
-              >
-                <div
-                  v-for="test in lessonTests.get(lesson.id)"
-                  :key="test.id"
-                  class="text-sm"
-                >
-                  <h4 class="font-semibold">{{ test.title }}</h4>
-                  <p class="text-xs text-gray-400 truncate">{{ test.content }}</p>
-                  <div class="flex justify-between text-xs text-gray-400">
-                    <span>WPM: {{ test.passingWpm }}</span>
-                    <span>Accuracy: {{ test.accuracyThreshold }}%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-400">
-                Difficulty: {{ lesson.difficulty }}
+    <!-- Category-based Lessons -->
+    <div v-else class="w-full max-w-4xl">
+      <div v-if="categories.length" class="space-y-12">
+        <!-- Display only the visible categories -->
+        <div v-for="(category, idx) in categories.slice(0, visibleCategoryCount)" :key="category.category" class="border border-gray-700 rounded-lg p-6">
+          <!-- Category Header -->
+          <div class="flex justify-between items-center mb-6 pb-3 border-b border-gray-700">
+            <h2 class="text-2xl font-bold">{{ category.category }}</h2>
+            <div class="flex items-center">
+              <span v-if="!category.is_available" class="mr-2 text-sm text-red-400">
+                Complete previous category first
               </span>
-              <button
-                @click="startLesson(lesson)"
-                :disabled="!isLessonAvailable(idx)"
-                class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-md transition-all"
-                :class="{ 'opacity-50 cursor-not-allowed': !isLessonAvailable(idx) }"
-              >
-                {{ completedLessons.includes(lesson.id) ? 'Retake' : 'Start Lesson' }}
-              </button>
+              <v-icon v-if="!category.is_available" name="fc-lock" />
+              <v-icon v-else-if="isCategoryFullyCompleted(category)" name="fc-ok" class="text-green-500" />
+            </div>
+          </div>
+
+          <!-- Category Lessons -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+            <div v-for="lesson in category.lessons" :key="lesson.id"
+              :class="`bg-gray-900 rounded-lg shadow-md p-6 transition-transform ${category.is_available ? 'hover:bg-gray-700 hover:scale-105' : 'opacity-60 cursor-not-allowed'}`">
+              <div class="flex justify-between items-start mb-2">
+                <h2 class="text-xl font-semibold">{{ lesson.title }}</h2>
+                <v-icon v-if="!category.is_available" name="fc-lock" />
+                <v-icon v-else-if="isLessonComplete(lesson.id)" name="fc-ok" />
+              </div>
+              <p class="text-sm text-gray-400 mb-4">{{ lesson.content }}</p>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-400">Difficulty: {{ lesson.difficulty }}</span>
+                <button
+                  class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-md transition-transform hover:scale-105"
+                  @click="startLesson(lesson)" :disabled="!category.is_available"
+                  :class="{ 'opacity-50 cursor-not-allowed': !category.is_available }">
+                  {{ isLessonComplete(lesson.id) ? 'Retake' : 'Start Lesson' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category Tests -->
+          <div v-if="category.tests.length" class="mt-6 border-t border-gray-700 pt-4">
+            <h3 class="text-lg font-semibold mb-3">Category Tests</h3>
+            <p class="text-gray-400 text-sm mb-4">Complete at least one test to unlock the next category.</p>
+            
+            <div class="grid grid-cols-1 gap-4">
+              <div v-for="test in category.tests" :key="test.id"
+                class="bg-gray-800 border border-gray-700 rounded-lg p-4 flex justify-between items-center">
+                <div>
+                  <h4 class="font-medium">{{ test.title }}</h4>
+                  <p class="text-sm text-gray-400">{{ test.content }}</p>
+                </div>
+                <button
+                  class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-md"
+                  @click="startTest(test)" 
+                  :disabled="!category.is_available || !category.lessons.every(l => isLessonComplete(l.id))"
+                  :class="{ 'opacity-50 cursor-not-allowed': !category.is_available || !category.lessons.every(l => isLessonComplete(l.id)) }">
+                  {{ isLessonComplete(test.id) ? 'Retake Test' : 'Take Test' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <p v-if="!lessons.length" class="text-red-500 text-center">
-      No lessons available for this difficulty.
-    </p>
+        <!-- Loading more indicator -->
+        <div v-if="loadingMore" class="text-center py-4">
+          <div class="animate-spin inline-block rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+          <p class="mt-2 text-gray-400">Loading more...</p>
+        </div>
+
+        <!-- Bottom marker for intersection observer -->
+        <div ref="bottomMarker" class="h-4"></div>
+      </div>
+
+      <!-- No lessons message -->
+      <p v-else class="text-red-500 text-center">No lessons available for this difficulty.</p>
+    </div>
   </div>
 </template>
-
-<style>
-/* add the Tailwind line-clamp plugin in your project to use .line-clamp-3 */
-</style>
