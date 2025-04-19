@@ -15,7 +15,6 @@ pub fn get_lessons(difficulty: String) -> Result<Vec<Lesson>, String> {
         .filter(items::is_test.eq(false))
         .filter(items::difficulty.eq(difficulty))
         .order(items::id.asc())
-        .select(Lesson::as_select())
         .load::<Lesson>(conn)
         .map_err(|e| format!("Error loading lessons: {:?}", e))
 }

@@ -1,5 +1,5 @@
 use crate::{
-    models::{lesson::Lesson, lesson_test::LessonTest},
+    models::lesson::Lesson,
     services::lesson_service,
 };
 
@@ -9,8 +9,8 @@ pub fn get_lessons_by_difficulty(difficulty: String) -> Result<Vec<Lesson>, Stri
 }
 
 #[tauri::command]
-pub fn get_lesson_tests(id: i32) -> Result<Vec<LessonTest>, String> {
-    lesson_service::get_lesson_test(id)
+pub fn get_lesson_tests(id: i32) -> Result<Vec<Lesson>, String> {
+    lesson_service::get_lesson_tests(id)
 }
 
 #[tauri::command]
