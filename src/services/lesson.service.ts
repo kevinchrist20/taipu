@@ -28,17 +28,20 @@ export default {
         return await invoke('get_lesson_tests', { id: lessonId });
     },
 
-    async getLessonsByCategories(difficulty: string, userId: number): Promise<CategoryWithLessons[]> {
-        return await invoke('get_lessons_by_categories', { 
+    async getLessonsByCategories(
+        difficulty: string, 
+        userId: number
+    ): Promise<CategoryWithLessons[]> {
+        return await invoke('get_lessons_by_categories', {
             difficulty: difficulty.toUpperCase(),
             userId
         });
     },
 
     async getCategoryTests(category: string, difficulty: string): Promise<Lesson[]> {
-        return await invoke('get_category_tests', { 
+        return await invoke('get_category_tests', {
             category,
-            difficulty: difficulty.toUpperCase() 
+            difficulty: difficulty.toUpperCase()
         });
     }
 }

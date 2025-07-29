@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Debug};
 
 use crate::{
     db::{
@@ -51,7 +51,7 @@ pub fn get_lessons_by_categories(difficulty: String, user_id: i32) -> Result<Vec
     let all_lessons: Vec<Lesson> = items::lesson_items
         .filter(items::is_test.eq(false))
         .filter(items::difficulty.eq(&difficulty))
-        .order_by((items::category.asc(), items::id.asc()))
+        .order_by(items::id.desc())
         .load::<Lesson>(conn)
         .map_err(|e| format!("Error loading lessons: {:?}", e))?;
     
@@ -68,10 +68,12 @@ pub fn get_lessons_by_categories(difficulty: String, user_id: i32) -> Result<Vec
             .or_insert_with(Vec::new)
             .push(lesson);
     }
+
+    // println!("{:?}", categories_map.fmt());
     
     // Sort categories by order (you may need to add an order field to your schema)
     let mut sorted_categories: Vec<String> = categories_map.keys().cloned().collect();
-    sorted_categories.sort(); // You might want a custom sorting here
+    // sorted_categories.sort(); // You might want a custom sorting here
     
     // For each category, determine if it's available based on previous category completion
     let mut result = Vec::new();
