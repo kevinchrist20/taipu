@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Taipu",
-        "width": 1080,
-        "height": 840,
+        "width": 1280,
+        "height": 1080,
         "center": true,
         "resizable": true,
         "visible": true,
