@@ -19,7 +19,7 @@ const statusMessage = computed(() => `${props.percentage}%`)
 <template>
     <svg :width="diameter" :height="diameter" :viewBox="viewBox">
         <circle 
-            class="fill-none stroke-gray-300" 
+            class="fill-none stroke-gray-200" 
             :cx="diameter / 2" 
             :cy="diameter / 2" 
             :r="radius"

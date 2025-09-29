@@ -38,7 +38,6 @@ pub fn get_category_tests(category: &str, difficulty: &str) -> Result<Vec<Lesson
         .filter(items::is_test.eq(true))
         .filter(items::category.eq(category))
         .filter(items::difficulty.eq(difficulty))
-        .filter(items::parent_lesson_id.is_null()) 
         .order(items::id.asc())
         .load::<Lesson>(conn)
         .map_err(|e| format!("Error loading category tests: {:?}", e))

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { defineProps } from 'vue';
 import CircularProgressIndicator from './CircularProgressIndicator.vue';
+import { Check, LockIcon } from 'lucide-vue-next';
 
 defineProps<{
   categoryName: string;
@@ -39,12 +40,12 @@ const emit = defineEmits<{
       
       <!-- Progress Circle on the Right -->
       <div class="ml-4 flex-shrink-0">
-        <div v-if="!isAvailable" class="w-16 h-16 flex items-center justify-center">
-          <v-icon name="fc-lock" class="text-gray-500 text-2xl" />
+        <div v-if="!isAvailable" class="w-12 h-12 flex items-center justify-center">
+          <LockIcon color="#fcba03" />
         </div>
         <div v-else-if="isCompleted"
-          class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
-          <v-icon name="fc-ok" class="text-white text-xl" />
+          class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+          <Check class="text-white" />
         </div>
         <CircularProgressIndicator 
           v-else 

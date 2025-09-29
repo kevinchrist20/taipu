@@ -4,6 +4,7 @@ import HomeView from "../views/HomeView.vue";
 import LessonAreaView from "../views/LessonAreaView.vue";
 import CreateAccountView from "../views/CreateAccountView.vue";
 import LessonsView from "../views/LessonsView.vue";
+import CategoryLessonsView from "../views/CategoryLessonsView.vue";
 import { routes } from "../constants";
 import { useLessonStore } from "../storage";
 
@@ -24,6 +25,11 @@ const router = createRouter({
             path: routes.lessons,
             name: 'Lessons',
             component: LessonsView
+        },
+        {
+            path: routes.categoryLessons,
+            name: 'Category Lessons',
+            component: CategoryLessonsView
         },
         {
             path: routes.lessonArea,
