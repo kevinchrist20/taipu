@@ -1,12 +1,5 @@
-import { Lesson } from '../types/bindings';
+import { CategoryWithLessons, Lesson } from '../types/bindings';
 import { invoke } from '../types/tauri_commands';
-
-export interface CategoryWithLessons {
-    category: string;
-    lessons: Lesson[];
-    tests: Lesson[];
-    is_available: boolean;
-}
 
 export default {
     async getLessons(difficulty: string): Promise<Lesson[]> {
