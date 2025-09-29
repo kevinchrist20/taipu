@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { difficultyOptions, keyboardOptions, languageOptions, themeOptions } from '../types';
 import UserService from '../services/user.service';
-import useAlert from '../utils/useAlert';
+import useAlert from '../composables/useAlert';
 import router from '../router';
 import BackButton from '../components/BackButton.vue';
 

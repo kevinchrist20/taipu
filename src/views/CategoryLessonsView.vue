@@ -1,26 +1,37 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import BackButton from '../components/BackButton.vue';
 import CircularProgressIndicator from '../components/CircularProgressIndicator.vue';
 import { routes } from '../constants';
-import LessonService from '../services/lesson.service';
 import { SessionStore, useLessonStore } from '../storage';
-import { CategoryWithLessons, Lesson, User } from '../types/bindings';
-import useAlert from '../utils/useAlert';
+import { Lesson, User } from '../types/bindings';
+import useCategories from '../composables/useCategories';
+import useCompletedLessons from '../composables/useCompletedLessons';
 import { Check, BookOpen, Trophy, Lock, Star } from 'lucide-vue-next';
 
 const route = useRoute();
 const router = useRouter();
 const categoryName = route.params.category as string;
-
-const category = ref<CategoryWithLessons | null>(null);
-const completedLessons = ref<number[]>([]);
-const user = ref<User | null>(null);
 const lessonStore = useLessonStore();
-const loading = ref(false);
 
-// Compute category statistics
+const { 
+  getCategoryByName, 
+  formatCategoryName,
+  fetchCategories,
+  loading: categoriesLoading
+} = useCategories();
+
+const { 
+  completedLessons, 
+  fetchCompletedLessons,
+  loading: completedLessonsLoading
+} = useCompletedLessons();
+
+const user = computed<User | null>(() => SessionStore.user);
+const category = computed(() => getCategoryByName(categoryName));
+const loading = computed(() => categoriesLoading.value || completedLessonsLoading.value);
+
 const getCategoryProgress = computed(() => {
     if (!category.value) return { completed: 0, total: 0, percentage: 0 };
 
@@ -37,43 +48,25 @@ const getCategoryProgress = computed(() => {
     };
 });
 
-// Format category name for display
-const formatCategoryName = (categoryName: string) => {
-    return categoryName
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-};
-
 async function fetchCategoryData() {
+    if (!user.value) {
+        router.push({ path: routes.home });
+        return;
+    }
+
     try {
-        loading.value = true;
-        user.value = SessionStore.user;
-        if (!user.value) {
-            router.push({ path: routes.home });
-            return;
-        }
+        await Promise.all([
+            fetchCategories(),
+            fetchCompletedLessons()
+        ]);
 
-        const categories = await LessonService.getLessonsByCategories(
-            user.value.lessonDifficulty || '',
-            user.value.id
-        );
-
-        const foundCategory = categories.find(cat => cat.category === categoryName);
-        if (!foundCategory) {
-            useAlert().setAlert({ message: 'Category not found', type: 'danger' });
+        if (!category.value) {
             router.push({ path: routes.lessons });
             return;
         }
-
-        category.value = foundCategory;
-        completedLessons.value = await LessonService.getCompletedLessons(user.value.id);
     } catch (error) {
-        useAlert().setAlert({ message: 'Error fetching category data. Please try again later.', type: 'danger' });
         console.error('Error fetching category data:', error);
         router.push({ path: routes.lessons });
-    } finally {
-        loading.value = false;
     }
 }
 
@@ -97,7 +90,6 @@ const allLessonsCompleted = computed(() => {
     return category.value?.lessons.every(l => isLessonComplete(l.id)) || false;
 });
 
-// Check if lesson is locked (previous not completed)
 function isLessonLocked(index: number): boolean {
     if (!category.value?.isAvailable) return true;
     if (index === 0) return false;
@@ -114,12 +106,10 @@ onMounted(async () => {
     <div class="flex flex-col items-center min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white font-sans px-4 pt-8 pb-20">
         <BackButton />
 
-        <!-- Loading State -->
         <div v-if="loading" class="flex justify-center items-center h-64">
             <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
         </div>
 
-        <!-- Category not found -->
         <div v-else-if="!category" class="text-center py-16">
             <div class="text-6xl mb-4">❓</div>
             <h3 class="text-xl font-bold text-gray-400 mb-2">Category Not Found</h3>
@@ -145,7 +135,7 @@ onMounted(async () => {
                 </div>
             </div>
 
-            <!-- Lesson Path (Duolingo Style) -->
+            <!-- Lesson Path -->
             <div class="relative">
                 <!-- Vertical Path Line -->
                 <div class="absolute left-12 top-0 bottom-0 w-1 bg-gray-700/50"></div>

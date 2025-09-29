@@ -14,7 +14,11 @@ onMounted(() => {
 <template>
   <main>
     <Alert />
-    <RouterView />
+    <router-view v-slot="{ Component, route }">
+      <keep-alive :include="['Lessons', 'Category Lessons']">
+        <component :is="Component" :key="route.path" />
+      </keep-alive>
+    </router-view>
   </main>
 </template>
 
@@ -22,6 +26,7 @@ onMounted(() => {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -29,6 +34,7 @@ onMounted(() => {
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

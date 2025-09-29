@@ -1,79 +1,48 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, computed } from 'vue';
 import BackButton from '../components/BackButton.vue';
 import CategoryCard from '../components/CategoryCard.vue';
 import router from '../router';
-import LessonService from '../services/lesson.service';
 import { SessionStore } from '../storage';
 import { CategoryWithLessons, User } from '../types/bindings';
-import useAlert from '../utils/useAlert';
+import useCategories from '../composables/useCategories';
+import useCompletedLessons from '../composables/useCompletedLessons';
+import useCategoryProgress from '../composables/useCategoryProgress';
 
-const categories = ref<CategoryWithLessons[]>([]);
-const completedLessons = ref<number[]>([]);
-const user = ref<User | null>(null);
-const loading = ref(false);
+const { 
+  categories, 
+  loading: categoriesLoading, 
+  fetchCategories, 
+  formatCategoryName 
+} = useCategories();
 
-// Compute category statistics
-const getCategoryProgress = (category: CategoryWithLessons) => {
-  const totalLessons = category.lessons.length;
-  const completedCount = category.lessons.filter(lesson =>
-    completedLessons.value.includes(lesson.id)
-  ).length;
-  const percentage = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+const { 
+  completedLessons, 
+  loading: completedLessonsLoading, 
+  fetchCompletedLessons 
+} = useCompletedLessons();
 
-  return {
-    completed: completedCount,
-    total: totalLessons,
-    percentage
-  };
-};
+const { 
+  getCategoryProgress, 
+  getCategoryTestStatus 
+} = useCategoryProgress(completedLessons);
 
-// Check if category test is completed
-const isCategoryTestCompleted = (category: CategoryWithLessons) => {
-  return category.tests.some(test => completedLessons.value.includes(test.id));
-};
-
-// Get test status for category
-const getCategoryTestStatus = (category: CategoryWithLessons): 'Passed' | 'Ready' | 'Locked' => {
-  if (!category.isAvailable) return 'Locked';
-
-  const allLessonsCompleted = category.lessons.every(lesson =>
-    completedLessons.value.includes(lesson.id)
-  );
-
-  if (!allLessonsCompleted) return 'Locked';
-  if (isCategoryTestCompleted(category)) return 'Passed';
-  return 'Ready';
-};
-
-// Format category name for display
-const formatCategoryName = (categoryName: string) => {
-  return categoryName
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
+const user = computed<User | null>(() => SessionStore.user);
+const loading = computed(() => categoriesLoading.value || completedLessonsLoading.value);
 
 async function fetchData() {
+  if (!user.value) return;
+  
   try {
-    loading.value = true;
-    user.value = SessionStore.user;
-    if (!user.value) return;
-
-    categories.value = await LessonService.getLessonsByCategories(
-      user.value.lessonDifficulty || '',
-      user.value.id
-    );
-    completedLessons.value = await LessonService.getCompletedLessons(user.value.id);
+    await Promise.all([
+      fetchCategories(),
+      fetchCompletedLessons()
+    ]);
   } catch (error) {
-    useAlert().setAlert({ message: 'Error fetching lessons. Please try again later.', type: 'danger' });
     console.error('Error fetching data:', error);
-  } finally {
-    loading.value = false;
   }
 }
 
-// Navigate to category lessons view
 function selectCategory(category: CategoryWithLessons) {
   if (!category.isAvailable) return;
   router.push({ path: `/lessons/${category.category}` });

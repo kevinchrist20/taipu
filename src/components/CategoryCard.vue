@@ -2,13 +2,14 @@
 import { defineProps } from 'vue';
 import CircularProgressIndicator from './CircularProgressIndicator.vue';
 import { Check, LockIcon } from 'lucide-vue-next';
+import { TestStatus } from '../types';
 
 defineProps<{
   categoryName: string;
   completed: number;
   total: number;
   percentage: number;
-  testStatus: 'Passed' | 'Ready' | 'Locked';
+  testStatus: TestStatus;
   isAvailable: boolean;
   isCompleted: boolean;
 }>();
