@@ -1,10 +1,20 @@
 import { defineConfig, presetIcons, presetUno } from 'unocss'
 
 export default defineConfig({
-  presets:[presetUno({
+  presets: [presetUno({
     dark: 'media'
   }), presetIcons()],
-  shortcuts:[
+  theme: {
+    colors: {
+      "app-bg": "#FEF9EF",
+      "app-primary": "#227C9D",
+      "app-secondary": "#17C3B2",
+      "app-tertiary": "#FFCB77",
+      "app-text-primary": "#0B132B",
+      "app-text-secondary": "#333333",
+    },
+  },
+  shortcuts: [
     ['l-btn', 'rounded-full p-2 capitalize'],
     ['l-btn-primary', 'bg-amber text-white'],
     ['l-btn-secondary', ' text-amber border border-amber'],
