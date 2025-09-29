@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Debug};
+use std::collections::HashMap;
 
 use crate::{
     db::{
@@ -38,7 +38,7 @@ pub fn get_category_tests(category: &str, difficulty: &str) -> Result<Vec<Lesson
         .filter(items::is_test.eq(true))
         .filter(items::category.eq(category))
         .filter(items::difficulty.eq(difficulty))
-        .filter(items::parent_lesson_id.is_null()) // Category tests have null parent_lesson_id
+        .filter(items::parent_lesson_id.is_null()) 
         .order(items::id.asc())
         .load::<Lesson>(conn)
         .map_err(|e| format!("Error loading category tests: {:?}", e))
@@ -47,42 +47,55 @@ pub fn get_category_tests(category: &str, difficulty: &str) -> Result<Vec<Lesson
 pub fn get_lessons_by_categories(difficulty: String, user_id: i32) -> Result<Vec<CategoryWithLessons>, String> {
     let conn = &mut db_conn();
     
-    // Fetch all lessons for the given difficulty
     let all_lessons: Vec<Lesson> = items::lesson_items
         .filter(items::is_test.eq(false))
         .filter(items::difficulty.eq(&difficulty))
-        .order_by(items::id.desc())
+        .order_by(items::id.asc())
         .load::<Lesson>(conn)
         .map_err(|e| format!("Error loading lessons: {:?}", e))?;
     
-    // Get completed lessons for the user
     let completed_lessons = get_completed_lessons(user_id)?;
     let completed_lessons_set: std::collections::HashSet<i32> = completed_lessons.into_iter().collect();
     
-    // Group lessons by category
     let mut categories_map: HashMap<String, Vec<Lesson>> = HashMap::new();
     for lesson in all_lessons {
-        let category_name = lesson.category.clone(); // (|| "Uncategorized".to_string())
+        let category_name = lesson.category.clone();
         categories_map
             .entry(category_name)
             .or_insert_with(Vec::new)
             .push(lesson);
     }
-
-    // println!("{:?}", categories_map.fmt());
     
-    // Sort categories by order (you may need to add an order field to your schema)
-    let mut sorted_categories: Vec<String> = categories_map.keys().cloned().collect();
-    // sorted_categories.sort(); // You might want a custom sorting here
+    let category_order = vec![
+        "home-left",
+        "home-right", 
+        "home-combined",
+        "transition-top-home",
+        "transition-home-bottom",
+        "top-left",
+        "top-right",
+        "top-home-combined",
+        "bottom-left",
+        "bottom-right",
+        "punctuation",
+        "full-keyboard"
+    ];
     
-    // For each category, determine if it's available based on previous category completion
+    // Sort categories by the predefined order
+    let mut sorted_categories: Vec<String> = Vec::new();
+    for category in &category_order {
+        if categories_map.contains_key(*category) {
+            sorted_categories.push(category.to_string());
+        }
+    }
+    
     let mut result = Vec::new();
     let mut is_previous_category_completed = true; // First category is always available
     
     for category_name in sorted_categories {
-        let lessons = categories_map.remove(&category_name).unwrap_or_default();
+        let mut lessons = categories_map.remove(&category_name).unwrap_or_default();
         
-        // Get tests for this category
+        lessons.sort_by_key(|lesson| lesson.id);
         let tests = get_category_tests(&category_name, &difficulty)?;
         
         // A category is available if the previous category is completed
@@ -108,7 +121,6 @@ pub fn get_lessons_by_categories(difficulty: String, user_id: i32) -> Result<Vec
             is_available,
         });
         
-        // Update for next iteration
         is_previous_category_completed = is_category_completed;
     }
     
