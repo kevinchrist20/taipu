@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router';
 import Rate from '../components/Rate.vue';
-import { SessionStore, useLessonStore } from '../storage';
+import { SessionStore } from '../storage';
 import Keyboard from '../components/Keyboard.vue';
 import LessonService from '../services/lesson.service';
-import router from '../router';
 import { routes } from '../constants';
 import { difficultyRequirements } from '../types';
+import useLesson from '../composables/useLesson';
 
-const lessonStore = useLessonStore()
-const activeLesson = lessonStore.currentLesson;
+const route = useRoute();
+const router = useRouter();
+const lessonId = parseInt(route.params.id as string);
 const user = SessionStore.user;
+
+const { currentLesson: activeLesson, fetchLesson, loading: lessonLoading } = useLesson();
 
 const currentPosition = ref(0);
 const typedText = ref('');
-const nextKey = computed(() => activeLesson?.content[currentPosition.value])
+const nextKey = computed(() => activeLesson.value?.content[currentPosition.value])
 const secondsElapsed = ref(0);
 const timerRunning = ref(false);
 const lessonCompleted = ref(false);
@@ -27,9 +31,11 @@ let timerInterval: number | undefined
 
 const rateInfo = reactive({
     timer: ref('00:00'),
-    percentComplete: computed(() => Math.round((typedText.value.length / (activeLesson?.content.length || 0)) * 100)),
+    percentComplete: computed(() =>
+        Math.round((typedText.value.length / (activeLesson.value?.content.length || 0)) * 100)
+    ),
     accuracy: computed(() => {
-        const correctChars = typedText.value.split('').filter((char, index) => char === activeLesson?.content[index]).length
+        const correctChars = typedText.value.split('').filter((char, index) => char === activeLesson.value?.content[index]).length
         return Math.round((correctChars / (currentPosition.value > 0 ? currentPosition.value : 1)) * 100) || 100
     }),
     wpm: computed(() => {
@@ -101,7 +107,7 @@ function onKeyPress(key: string) {
         currentPosition.value++
     }
 
-    if (currentPosition.value >= (activeLesson?.content.length || 0)) {
+    if (currentPosition.value >= (activeLesson.value?.content.length || 0)) {
         stopTimer()
         showCompletionStats()
     }
@@ -116,7 +122,7 @@ async function completeLesson() {
     if (!passedLesson.value || !activeLesson || !user) return;
 
     try {
-        await LessonService.completeLesson(user.id, activeLesson.id);
+        await LessonService.completeLesson(user.id, activeLesson.value!.id);
         lessonCompleted.value = true;
         showStatsModal.value = false;
         returnToLessons();
@@ -163,7 +169,19 @@ function confirmExit() {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
+    // Fetch the lesson by ID from route params
+    if (!lessonId || isNaN(lessonId)) {
+        router.push({ path: routes.lessons });
+        return;
+    }
+
+    const lesson = await fetchLesson(lessonId);
+    if (!lesson) {
+        router.push({ path: routes.lessons });
+        return;
+    }
+
     getDifficultyRequirements();
 
     // Add keyboard shortcuts for pause and exit
@@ -176,7 +194,16 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="flex flex-col h-screen bg-gray-800 text-white relative">
+    <!-- Loading State -->
+    <div v-if="lessonLoading || !activeLesson" class="flex justify-center items-center h-screen bg-gray-800 text-white">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+            <p class="text-gray-400">Loading lesson...</p>
+        </div>
+    </div>
+
+    <!-- Lesson Content -->
+    <div v-else class="flex flex-col h-screen bg-gray-800 text-white relative">
         <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20">
             <div class="flex-grow overflow-auto p-4 h-[40rem]">
                 <div class="flex justify-between items-center mb-6">

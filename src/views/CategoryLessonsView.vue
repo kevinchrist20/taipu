@@ -5,7 +5,7 @@ import BackButton from '../components/BackButton.vue';
 import CategoryHeader from '../components/CategoryHeader.vue';
 import LessonPath from '../components/LessonPath.vue';
 import { routes } from '../constants';
-import { SessionStore, useLessonStore } from '../storage';
+import { SessionStore } from '../storage';
 import { Lesson, User } from '../types/bindings';
 import useCategories from '../composables/useCategories';
 import useCompletedLessons from '../composables/useCompletedLessons';
@@ -14,7 +14,6 @@ import useCategoryProgress from '../composables/useCategoryProgress';
 const route = useRoute();
 const router = useRouter();
 const categoryName = route.params.category as string;
-const lessonStore = useLessonStore();
 
 const {
     getCategoryByName,
@@ -61,14 +60,12 @@ async function fetchCategoryData() {
 
 function startLesson(lesson: Lesson) {
     if (!category.value?.isAvailable) return;
-    lessonStore.setLesson(lesson);
-    router.push({ path: routes.lessonArea });
+    router.push({ path: `/lesson/${lesson.id}` });
 }
 
 function startTest(test: Lesson) {
     if (!category.value?.isAvailable || !allLessonsCompleted.value) return;
-    lessonStore.setLesson(test);
-    router.push({ path: routes.lessonArea });
+    router.push({ path: `/lesson/${test.id}` });
 }
 
 const allLessonsCompleted = computed(() => {

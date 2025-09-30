@@ -1,11 +1,12 @@
 use chrono::NaiveDateTime;
-use diesel::prelude::{Insertable, Queryable};
+use diesel::{prelude::{Insertable, Queryable}, Selectable};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-#[derive(Queryable, Debug, Serialize, Deserialize, TS)]
+#[derive(Queryable, Selectable, Debug, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
+#[diesel(table_name = crate::db::schema::lesson_items)]
 pub struct Lesson {
     pub id: i32,
     pub title: String,

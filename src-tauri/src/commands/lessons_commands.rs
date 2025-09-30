@@ -32,3 +32,8 @@ pub fn get_lessons_by_categories(difficulty: String, user_id: i32) -> Result<Vec
 pub fn get_category_tests(category: String, difficulty: String) -> Result<Vec<Lesson>, String> {
     lesson_service::get_category_tests(&category, &difficulty)
 }
+
+#[tauri::command]
+pub fn get_lesson_by_id(lesson_id: i32) -> Result<Lesson, String> {
+    lesson_service::get_lesson_by_id(lesson_id)
+}

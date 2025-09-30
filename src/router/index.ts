@@ -6,7 +6,6 @@ import CreateAccountView from "../views/CreateAccountView.vue";
 import LessonsView from "../views/LessonsView.vue";
 import CategoryLessonsView from "../views/CategoryLessonsView.vue";
 import { routes } from "../constants";
-import { useLessonStore } from "../storage";
 
 const router = createRouter({
     history: createWebHistory(),
@@ -34,15 +33,7 @@ const router = createRouter({
         {
             path: routes.lessonArea,
             name: 'Lesson Area',
-            component: LessonAreaView,
-            beforeEnter: (_, __, next) => {
-                const lessonStore = useLessonStore();
-                if (lessonStore.currentLesson) {
-                    next();
-                } else {
-                    next({ path: routes.lessons });
-                }
-            }
+            component: LessonAreaView
         },
     ]
 });

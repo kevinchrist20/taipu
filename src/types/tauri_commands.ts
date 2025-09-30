@@ -28,6 +28,10 @@ export type TauriCommands = {
         returns: Lesson[],
         args: { category: string, difficulty: string }
     },
+    get_lesson_by_id: {
+        returns: Lesson,
+        args: { lessonId: number }
+    },
     get_all_users: {
         returns: User[],
         args: undefined

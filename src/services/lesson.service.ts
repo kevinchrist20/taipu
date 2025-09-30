@@ -22,7 +22,7 @@ export default {
     },
 
     async getLessonsByCategories(
-        difficulty: string, 
+        difficulty: string,
         userId: number
     ): Promise<CategoryWithLessons[]> {
         return await invoke('get_lessons_by_categories', {
@@ -36,5 +36,9 @@ export default {
             category,
             difficulty: difficulty.toUpperCase()
         });
+    },
+
+    async getLessonById(lessonId: number): Promise<Lesson | null> {
+        return await invoke('get_lesson_by_id', { lessonId: lessonId });
     }
 }

@@ -3,5 +3,5 @@ export const routes = {
     createAccount: "/create-account",
     lessons: "/lessons",
     categoryLessons: "/lessons/:category",
-    lessonArea: "/lesson-area",
+    lessonArea: "/lesson/:id",
 };

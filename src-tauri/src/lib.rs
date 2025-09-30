@@ -50,6 +50,7 @@ pub fn run() {
             lessons_commands::get_completed_lessons,
             lessons_commands::get_lessons_by_categories,
             lessons_commands::get_category_tests,
+            lessons_commands::get_lesson_by_id
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
