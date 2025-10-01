@@ -7,8 +7,11 @@ import { User } from '../types/bindings';
 import router from '../router';
 import { SessionStore } from '../storage';
 import { routes } from '../constants';
+import UserListModal from '../components/modals/UserListModal.vue';
 
 const users = ref<User[]>([]);
+const showUsersModal = ref(false);
+const user = ref<User>()
 
 const homeScreenOptions = computed(() => [
   {
@@ -46,8 +49,21 @@ async function getUsers() {
   }
 }
 
-function continueLesson() {  
-  SessionStore.setUser(users.value[0]);
+function continueLesson() {
+  if (users.value.length === 1) {
+    SessionStore.setUser(users.value[0]);
+    router.push({ path: routes.lessons });
+    return;
+  }
+
+  showUsersModal.value = users.value.length > 1;
+}
+
+function selectUser(value: User) {
+  console.log(value);
+  
+  user.value = value;
+  SessionStore.setUser(value);
   router.push({ path: routes.lessons });
 }
 
@@ -56,7 +72,7 @@ onMounted(async () => await getUsers())
 
 <template>
   <div class="h-screen w-screen bg-gray-800 text-white flex items-center justify-center font-mono">
-    <div class="fade-in p-8 rounded-lg bg-gray-900 bg-opacity-80 shadow-lg max-w-lg w-full">
+    <div class="p-8 rounded-lg bg-gray-900 bg-opacity-80 shadow-lg max-w-lg w-full">
       <h1 class="text-4xl font-bold text-center mb-6">Welcome to Taipu</h1>
       <div class="grid grid-cols-1 gap-4">
         <button v-for="(option, index) in homeScreenOptions" :key="option.title" @click="option.action"
@@ -74,6 +90,8 @@ onMounted(async () => await getUsers())
         </button>
       </div>
     </div>
+
+    <UserListModal :users="users" :show="showUsersModal" @select-user="selectUser" @close="showUsersModal == false" />
   </div>
 </template>
 
