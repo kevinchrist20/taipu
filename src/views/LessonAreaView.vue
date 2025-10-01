@@ -1,135 +1,93 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import Rate from '../components/Rate.vue';
 import { SessionStore } from '../storage';
 import Keyboard from '../components/Keyboard.vue';
 import LessonService from '../services/lesson.service';
 import { routes } from '../constants';
-import { difficultyRequirements } from '../types';
 import useLesson from '../composables/useLesson';
 import useAlert from '../composables/useAlert';
+import useTimer from '../composables/useTimer';
+import useTypingState from '../composables/useTypingState';
+import useRateInfo from '../composables/useRateInfo';
+import useLessonProgress from '../composables/useLessonProgress';
+import useModalState from '../composables/useModalState';
+import useKeyboardHandler from '../composables/useKeyboardHandler';
 import { LogOut, Pause, Play } from 'lucide-vue-next';
 import CompletionModal from '../components/modals/CompletionModal.vue';
 import PauseModal from '../components/modals/PauseModal.vue';
 import ExitConfirmModal from '../components/modals/ExitConfirmModal.vue';
+import TypingArea from '../components/TypingArea.vue';
 
 const route = useRoute();
 const router = useRouter();
 const lessonId = parseInt(route.params.id as string);
 const user = SessionStore.user;
 
+// Composables
 const { currentLesson: activeLesson, fetchLesson, loading: lessonLoading } = useLesson();
+const { secondsElapsed, formattedTime, timerRunning, startTimer, stopTimer, resetTimer, cleanup } = useTimer();
+const { currentPosition, typedText, nextKey, handleKeyInput, resetTyping } = useTypingState();
 
-const currentPosition = ref(0);
-const typedText = ref('');
-const nextKey = computed(() => activeLesson.value?.content[currentPosition.value])
-const secondsElapsed = ref(0);
-const timerRunning = ref(false);
-const lessonCompleted = ref(false);
-const showStatsModal = ref(false);
-const grade = ref('');
-const userLessonRequirements = ref({ accuracy: 0, wpm: 0 });
-const showPauseModal = ref(false);
-const showExitModal = ref(false);
+const lessonContent = computed(() => activeLesson.value?.content || '');
+const rateInfo = useRateInfo({ typedText, currentPosition, secondsElapsed, lessonContent });
 
-let timerInterval: number | undefined
+const {
+    lessonCompleted,
+    grade,
+    userRequirements,
+    passedLesson,
+    setGrade,
+    markCompleted,
+    reset: resetProgress
+} = useLessonProgress({
+    user,
+    accuracy: rateInfo.accuracy,
+    wpm: rateInfo.wpm
+});
 
-const rateInfo = reactive({
-    timer: ref('00:00'),
-    percentComplete: computed(() =>
-        Math.round((typedText.value.length / (activeLesson.value?.content.length || 0)) * 100)
-    ),
-    accuracy: computed(() => {
-        const correctChars = typedText.value.split('').filter((char, index) =>
-            char === activeLesson.value?.content[index]
-        ).length
-        return Math.round((correctChars / (currentPosition.value > 0 ? currentPosition.value : 1)) * 100) || 100
-    }),
-    wpm: computed(() => {
-        // Standard WPM calculation assumes 5 characters (including spaces) = 1 word
-        const charCount = typedText.value.length;
-        const wordCount = charCount / 5;
-        const minutes = secondsElapsed.value / 60;
-        return minutes > 0 ? Math.round(wordCount / minutes) : 0
-    })
-})
-
-const passedLesson = computed(() => {
-    if (!user?.lessonDifficulty || !activeLesson) return false;
-
-    const requirements = difficultyRequirements[user.lessonDifficulty.toLowerCase()];
-    if (!requirements) return false;
-
-    return rateInfo.accuracy >= requirements.accuracy && rateInfo.wpm >= requirements.wpm;
-})
-
-function startTimer() {
-    if (!timerRunning.value) {
-        timerRunning.value = true
-        timerInterval = setInterval(() => {
-            secondsElapsed.value++
-            const minutes = Math.floor(secondsElapsed.value / 60)
-            const seconds = secondsElapsed.value % 60
-            rateInfo.timer = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-        }, 1000)
-    }
-}
-
-function stopTimer() {
-    if (timerRunning.value && timerInterval) {
-        clearInterval(timerInterval)
-        timerRunning.value = false
-    }
-}
+const {
+    showStatsModal,
+    showPauseModal,
+    showExitModal,
+    openStatsModal,
+    closeStatsModal,
+    openPauseModal,
+    closePauseModal,
+    openExitModal,
+    closeExitModal
+} = useModalState();
 
 function togglePause() {
     if (currentPosition.value === 0 || lessonCompleted.value || showStatsModal.value) return;
-    showPauseModal.value = true;
+    openPauseModal();
     stopTimer();
 }
 
 function resumeLesson() {
-    showPauseModal.value = false;
+    closePauseModal();
     startTimer();
 }
 
-function handleKeyPress(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-        if (showPauseModal.value) {
-            resumeLesson();
-        } else if (!showStatsModal.value && !showExitModal.value && currentPosition.value > 0) {
-            togglePause();
-        }
-    }
-}
-
 function onKeyboardKeyPress(key: string) {
-    if (lessonCompleted.value || showStatsModal.value || showPauseModal.value) return;
+    if (lessonCompleted.value || showStatsModal.value || showPauseModal.value || showExitModal.value) return;
 
-    if (!timerRunning.value)
-        startTimer()
-
-    if (key.length === 1) {
-        typedText.value += key
-        currentPosition.value++
-    } else if (key === 'Backspace' && currentPosition.value > 0) {
-        typedText.value = typedText.value.slice(0, -1)
-        currentPosition.value--
-    } else if (key === 'Space') {
-        typedText.value += ' '
-        currentPosition.value++
+    if (!timerRunning.value) {
+        startTimer();
     }
 
-    if (currentPosition.value >= (activeLesson.value?.content.length || 0)) {
-        stopTimer()
-        showCompletionStats()
+    const isCompleted = handleKeyInput(key, lessonContent.value);
+
+    if (isCompleted) {
+        stopTimer();
+        showCompletionStats();
     }
 }
 
 function showCompletionStats() {
-    showStatsModal.value = true;
-    grade.value = calculateGrade();
+    setGrade();
+    openStatsModal();
 }
 
 async function completeLesson() {
@@ -137,8 +95,8 @@ async function completeLesson() {
 
     try {
         await LessonService.completeLesson(user.id, activeLesson.value!.id);
-        lessonCompleted.value = true;
-        showStatsModal.value = false;
+        markCompleted();
+        closeStatsModal();
         returnToLessons();
     } catch (error) {
         console.error("Error completing lesson:", error);
@@ -151,41 +109,30 @@ function returnToLessons() {
 }
 
 function retryLesson() {
-    showStatsModal.value = false;
-    typedText.value = '';
-    currentPosition.value = 0;
-    secondsElapsed.value = 0;
-    rateInfo.timer = '00:00';
+    closeStatsModal();
+    resetTyping();
+    resetTimer();
+    resetProgress();
 }
 
 function confirmExit() {
-    showExitModal.value = true;
-    if (showPauseModal.value) {
-        showPauseModal.value = false;
-    }
+    openExitModal();
 }
 
 function handleExitConfirm() {
-    showExitModal.value = false;
+    closeExitModal();
     returnToLessons();
 }
 
-function getDifficultyRequirements() {
-    if (!user?.lessonDifficulty) return { accuracy: 0, wpm: 0 };
-    userLessonRequirements.value = difficultyRequirements[user.lessonDifficulty.toLowerCase()] || {
-        accuracy: 0, wpm: 0
-    };
-}
-
-function calculateGrade() {
-    const requirements = userLessonRequirements.value;
-
-    if (rateInfo.accuracy >= requirements.accuracy + 10 && rateInfo.wpm >= requirements.wpm + 10) return 'S';
-    if (rateInfo.accuracy >= requirements.accuracy + 5 && rateInfo.wpm >= requirements.wpm + 5) return 'A';
-    if (rateInfo.accuracy >= requirements.accuracy && rateInfo.wpm >= requirements.wpm) return 'B';
-    if (rateInfo.accuracy >= requirements.accuracy - 10 && rateInfo.wpm >= requirements.wpm - 5) return 'C';
-    return 'D';
-}
+// Setup keyboard handling
+useKeyboardHandler({
+    onTogglePause: togglePause,
+    onResume: resumeLesson,
+    showPauseModal,
+    showStatsModal,
+    showExitModal,
+    currentPosition
+});
 
 onMounted(async () => {
     if (!lessonId || isNaN(lessonId)) {
@@ -196,19 +143,11 @@ onMounted(async () => {
     const lesson = await fetchLesson(lessonId);
     if (!lesson) {
         router.push({ path: routes.lessons });
-        return;
     }
-
-    getDifficultyRequirements();
-
-    window.addEventListener('keydown', handleKeyPress);
 });
 
 onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeyPress);
-    if (timerInterval) {
-        clearInterval(timerInterval);
-    }
+    cleanup();
 });
 </script>
 
@@ -252,39 +191,33 @@ onUnmounted(() => {
                     </div>
                 </div>
 
-                <Rate :rate-info />
+                <Rate :rate-info="{
+                    timer: formattedTime,
+                    accuracy: rateInfo.accuracy.value,
+                    percentComplete: rateInfo.percentComplete.value,
+                    wpm: rateInfo.wpm.value
+                }" />
 
                 <!-- Main Content Area -->
                 <main class="flex-grow overflow-auto">
-                    <div class="bg-gray-700 rounded-lg p-6 text-4xl leading-relaxed shadow-md">
-                        <span v-for="(char, index) in activeLesson?.content" :key="index"
-                            class="transition-colors duration-150" :class="{
-                                'text-green-400': index < currentPosition && typedText[index] === char,
-                                'text-red-500': index < currentPosition && typedText[index] !== char,
-                                'bg-indigo-600 text-white': index === currentPosition,
-                                'text-gray-500': index > currentPosition,
-                            }">
-                            {{ char }}
-                        </span>
-                    </div>
+                    <TypingArea :content="lessonContent" :current-position="currentPosition" :typed-text="typedText" />
                 </main>
 
                 <!-- Modals -->
-                <CompletionModal :show="showStatsModal" :grade="grade" :accuracy="rateInfo.accuracy" :wpm="rateInfo.wpm"
-                    :timer="rateInfo.timer" :current-position="currentPosition"
-                    :total-characters="activeLesson?.content.length || 0"
-                    :required-accuracy="userLessonRequirements.accuracy" :required-wpm="userLessonRequirements.wpm"
-                    :passed="passedLesson" @retry="retryLesson" @continue="completeLesson"
-                    @close="showStatsModal = false" />
+                <CompletionModal :show="showStatsModal" :grade="grade" :accuracy="rateInfo.accuracy.value"
+                    :wpm="rateInfo.wpm.value" :timer="formattedTime" :current-position="currentPosition"
+                    :total-characters="activeLesson?.content.length || 0" :required-accuracy="userRequirements.accuracy"
+                    :required-wpm="userRequirements.wpm" :passed="passedLesson" @retry="retryLesson"
+                    @continue="completeLesson" @close="closeStatsModal" />
 
                 <PauseModal :show="showPauseModal" @resume="resumeLesson" @exit="confirmExit" @close="resumeLesson" />
 
                 <ExitConfirmModal :show="showExitModal" :has-progress="currentPosition > 0 && !lessonCompleted"
-                    @confirm="handleExitConfirm" @cancel="showExitModal = false" @close="showExitModal = false" />
+                    @confirm="handleExitConfirm" @close="closeExitModal" />
 
                 <!-- Keyboard Area -->
                 <footer class="bg-gray-900 p-4 fixed bottom-0 left-0 w-full">
-                    <Keyboard :next="nextKey" :complete="rateInfo.percentComplete === 100"
+                    <Keyboard :next="nextKey(lessonContent)" :complete="rateInfo.percentComplete.value === 100"
                         @key-pressed="onKeyboardKeyPress" />
                 </footer>
             </div>
