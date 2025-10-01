@@ -9,3 +9,4 @@ export * from './Keyboard.vue';
 export * from './LessonCard.vue';
 export * from './LessonPath.vue';
 export * from './Rate.vue';
+export * from './TypingArea.vue';
