@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineProps } from 'vue';
 import CircularProgressIndicator from './CircularProgressIndicator.vue';
 import { Check, LockIcon } from 'lucide-vue-next';
 import { TestStatus } from '../types';
