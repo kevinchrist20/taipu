@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import BackButton from '../components/BackButton.vue';
-import CategoryHeader from '../components/CategoryHeader.vue';
+import { ChevronLeft } from 'lucide-vue-next';
 import LessonPath from '../components/LessonPath.vue';
 import { routes } from '../constants';
 import { SessionStore } from '../storage';
@@ -18,6 +17,7 @@ const categoryName = route.params.category as string;
 const {
     getCategoryByName,
     formatCategoryName,
+    getCategoryDescription,
     fetchCategories,
     loading: categoriesLoading
 } = useCategories();
@@ -29,7 +29,7 @@ const {
 } = useCompletedLessons();
 
 const {
-    getCategoryProgress,
+    getCategoryProgress: _getCategoryProgress,
 } = useCategoryProgress(completedLessons);
 
 const user = computed<User | null>(() => SessionStore.user);
@@ -72,36 +72,69 @@ const allLessonsCompleted = computed(() => {
     return category.value?.lessons.every(lesson => completedLessons.value.includes(lesson.id)) || false;
 });
 
+function difficultyStyle(d: string) {
+    const level = d.toLowerCase();
+    if (level === 'beginner')     return { color: 'var(--success)',     backgroundColor: 'color-mix(in oklch, var(--success) 12%, transparent)',     borderColor: 'color-mix(in oklch, var(--success) 40%, transparent)' };
+    if (level === 'intermediate') return { color: 'var(--warning)',     backgroundColor: 'color-mix(in oklch, var(--warning) 12%, transparent)',     borderColor: 'color-mix(in oklch, var(--warning) 40%, transparent)' };
+    return                               { color: 'var(--destructive)', backgroundColor: 'color-mix(in oklch, var(--destructive) 12%, transparent)', borderColor: 'color-mix(in oklch, var(--destructive) 40%, transparent)' };
+}
+
 onMounted(async () => {
     await fetchCategoryData();
 });
 </script>
 
 <template>
-    <div
-        class="min-h-screen bg-background px-4 pt-6 pb-20">
-        <BackButton />
+    <div class="min-h-screen bg-background px-6 py-6">
+        <div class="max-w-2xl mx-auto">
+            <!-- Loading -->
+            <div v-if="loading" class="flex justify-center items-center h-64">
+                <div class="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            </div>
 
-        <div v-if="loading" class="flex justify-center items-center h-64">
-            <div class="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-        </div>
+            <!-- Not found -->
+            <div v-else-if="!category" class="text-center py-16">
+                <div class="text-6xl mb-4">❓</div>
+                <h3 class="text-xl font-bold text-muted-foreground mb-2">Category Not Found</h3>
+                <p class="text-muted-foreground text-sm">The requested category could not be found.</p>
+            </div>
 
-        <div v-else-if="!category" class="text-center py-16">
-            <div class="text-6xl mb-4">❓</div>
-            <h3 class="text-xl font-bold text-muted-foreground mb-2">Category Not Found</h3>
-            <p class="text-muted-foreground text-sm">The requested category could not be found.</p>
-        </div>
+            <template v-else>
+                <!-- Back link -->
+                <button
+                    @click="router.push({ path: routes.lessons })"
+                    class="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+                >
+                    <ChevronLeft :size="15" />
+                    Back to Dashboard
+                </button>
 
-        <!-- Category Lessons View -->
-        <div v-else class="w-full max-w-2xl mx-auto mt-8">
-            <!-- Category Header with Progress -->
-            <CategoryHeader :category-name="formatCategoryName(category.category)"
-                :completed="getCategoryProgress(category).completed" :total="getCategoryProgress(category).total"
-                :percentage="getCategoryProgress(category).percentage" />
+                <!-- Category meta -->
+                <div class="mb-8">
+                    <span
+                        class="inline-block text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border mb-3"
+                        :style="difficultyStyle(category.lessons[0]?.difficulty ?? 'beginner')"
+                    >
+                        {{ category.lessons[0]?.difficulty ?? 'BEGINNER' }}
+                    </span>
+                    <h1 class="text-3xl font-bold font-mono text-foreground mb-2">
+                        {{ formatCategoryName(category.category) }}
+                    </h1>
+                    <p class="text-muted-foreground text-sm">
+                        {{ getCategoryDescription(category.category) }}
+                    </p>
+                </div>
 
-            <!-- Lesson Path -->
-            <LessonPath :lessons="category.lessons" :tests="category.tests" :completed-lessons="completedLessons"
-                :all-lessons-completed="allLessonsCompleted" @start-lesson="startLesson" @start-test="startTest" />
+                <!-- Lesson list -->
+                <LessonPath
+                    :lessons="category.lessons"
+                    :tests="category.tests"
+                    :completed-lessons="completedLessons"
+                    :all-lessons-completed="allLessonsCompleted"
+                    @start-lesson="startLesson"
+                    @start-test="startTest"
+                />
+            </template>
         </div>
     </div>
 </template>

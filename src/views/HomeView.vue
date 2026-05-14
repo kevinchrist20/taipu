@@ -53,9 +53,9 @@ onMounted(async () => {
       <!-- New Profile -->
       <button
         @click="router.push({ path: routes.createAccount })"
-        class="flex flex-col items-center gap-2 w-36 py-6 px-4 rounded-2xl border-2 border-dashed border-border hover:border-primary hover:bg-surface-elevated transition-all"
+        class="flex flex-col items-center gap-2 w-36 py-6 px-4 rounded-2xl bg-card border-2 border-dashed border-border hover:border-primary hover:bg-surface-elevated transition-all"
       >
-        <div class="w-10 h-10 rounded-full border-2 border-border flex items-center justify-center text-muted-foreground text-2xl leading-none">
+        <div class="w-10 h-10 rounded-full border-dashed border-2 border-border flex items-center justify-center text-muted-foreground text-2xl leading-none">
           +
         </div>
         <span class="text-sm font-medium text-muted-foreground mt-1 font-sans">New Profile</span>

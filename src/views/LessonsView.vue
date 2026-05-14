@@ -29,10 +29,10 @@ const user = computed<User | null>(() => SessionStore.user);
 const loading = computed(() => categoriesLoading.value || completedLessonsLoading.value);
 
 const stats = [
-  { label: 'Avg WPM',    value: '0',  icon: Zap },
-  { label: 'Accuracy',   value: '0%', icon: Target },
-  { label: 'Best WPM',   value: '0',  icon: TrendingUp },
-  { label: 'Time Spent', value: '0m', icon: Clock },
+  { label: 'Avg WPM',    value: '0',  icon: Zap, color: 'text-green-500' },
+  { label: 'Accuracy',   value: '0%', icon: Target, color: 'text-blue-500' },
+  { label: 'Best WPM',   value: '0',  icon: TrendingUp, color: 'text-yellow-500' },
+  { label: 'Time Spent', value: '0m', icon: Clock, color: 'text-red-500' },
 ];
 
 function getCategoryDifficulty(category: CategoryWithLessons): string {
@@ -70,10 +70,10 @@ onMounted(fetchData);
           class="bg-card border border-border rounded-2xl p-5"
         >
           <div class="flex items-center gap-2 text-muted-foreground text-sm mb-3">
-            <component :is="stat.icon" :size="15" />
+            <component :is="stat.icon" :size="15" :class="stat.color" />
             {{ stat.label }}
           </div>
-          <p class="text-2xl font-bold text-foreground">{{ stat.value }}</p>
+          <p class="text-2xl font-bold text-foreground font-mono">{{ stat.value }}</p>
         </div>
       </div>
 

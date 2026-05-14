@@ -26,12 +26,6 @@ const showShell = computed(() =>
   <main class="flex flex-col min-h-screen bg-background text-foreground">
     <Alert />
     <Header v-if="showShell" />
-    <div class="flex-1 overflow-auto">
-      <router-view v-slot="{ Component, route: r }">
-        <keep-alive :include="['Lessons', 'Category Lessons']">
-          <component :is="Component" :key="r.path" />
-        </keep-alive>
-      </router-view>
-    </div>
+    <RouterView />
   </main>
 </template>
