@@ -1,25 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { difficultyOptions, languageOptions } from '../types';
+import { AVATARS, difficultyOptions, languageOptions } from '../types';
 import UserService from '../services/user.service';
 import useAlert from '../composables/useAlert';
 import router from '../router';
 import AppLogo from '../components/AppLogo.vue';
-
-const AVATARS: { slug: string; emoji: string }[] = [
-  { slug: 'fox',      emoji: '🦊' },
-  { slug: 'panda',    emoji: '🐼' },
-  { slug: 'leopard',  emoji: '🐆' },
-  { slug: 'koala',    emoji: '🐨' },
-  { slug: 'frog',     emoji: '🐸' },
-  { slug: 'owl',      emoji: '🦉' },
-  { slug: 'unicorn',  emoji: '🦄' },
-  { slug: 'octopus',  emoji: '🐙' },
-  { slug: 'trex',     emoji: '🦖' },
-  { slug: 'dino',     emoji: '🦕' },
-  { slug: 'penguin',  emoji: '🐧' },
-  { slug: 'rocket',   emoji: '🚀' },
-];
 
 const selectedAvatar = ref(0);
 const name = ref('');

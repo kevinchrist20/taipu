@@ -5,7 +5,7 @@ export type KeyboardKeyType =
 
 
 export function createKeyType(key: string): KeyboardKeyType {
-    if (!isNaN(Number(key))) {
+    if (!Number.isNaN(Number(key))) {
         return { type: 'Number', name: key };
     } else if (/^[a-zA-Z]$/.test(key)) {
         return { type: 'Letter', name: key };
@@ -40,3 +40,27 @@ export const difficultyOptions = [
     { value: 'INTERMEDIATE', label: 'Intermediate' },
     { value: 'ADVANCED', label: 'Advanced' },
 ];
+
+export interface Avatar {
+    slug: string;
+    emoji: string;
+}
+
+export const AVATARS: Avatar[] = [
+    { slug: 'fox',     emoji: '🦊' },
+    { slug: 'panda',   emoji: '🐼' },
+    { slug: 'leopard', emoji: '🐆' },
+    { slug: 'koala',   emoji: '🐨' },
+    { slug: 'frog',    emoji: '🐸' },
+    { slug: 'owl',     emoji: '🦉' },
+    { slug: 'unicorn', emoji: '🦄' },
+    { slug: 'octopus', emoji: '🐙' },
+    { slug: 'trex',    emoji: '🦖' },
+    { slug: 'dino',    emoji: '🦕' },
+    { slug: 'penguin', emoji: '🐧' },
+    { slug: 'rocket',  emoji: '🚀' },
+];
+
+export function avatarEmoji(slug: string): string {
+    return AVATARS.find(a => a.slug === slug)?.emoji ?? '🦊';
+}

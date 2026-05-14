@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { User } from '../types/bindings';
+import { avatarEmoji } from '../types';
 import UserService from '../services/user.service';
 import router from '../router';
 import { SessionStore } from '../storage';
@@ -9,23 +10,8 @@ import AppLogo from '../components/AppLogo.vue';
 
 const users = ref<User[]>([]);
 
-const AVATAR_MAP: Record<string, string> = {
-  fox:     '🦊',
-  panda:   '🐼',
-  leopard: '🐆',
-  koala:   '🐨',
-  frog:    '🐸',
-  owl:     '🦉',
-  unicorn: '🦄',
-  octopus: '🐙',
-  trex:    '🦖',
-  dino:    '🦕',
-  penguin: '🐧',
-  rocket:  '🚀',
-};
-
 function getAvatar(user: User): string {
-  return AVATAR_MAP[user.avatar] ?? '🦊';
+  return avatarEmoji(user.avatar);
 }
 
 function selectUser(user: User) {
