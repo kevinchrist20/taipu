@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use diesel::{Connection, SqliteConnection};
+use diesel::{Connection, RunQueryDsl, SqliteConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
@@ -46,10 +46,21 @@ fn get_db_path() -> String {
 
 fn run_migrations() {
     let mut connection = migration_conn();
+
+    // PRAGMA foreign_keys must be set outside a transaction to take effect.
+    // Disable it so the users table-rebuild migration can drop the referenced table.
+    diesel::sql_query("PRAGMA foreign_keys = OFF")
+        .execute(&mut connection)
+        .expect("Failed to disable foreign key checks");
+
     if let Err(e) = connection.run_pending_migrations(MIGRATIONS) {
         eprintln!("Migration error: {e:?}");
         std::process::exit(1);
     }
+
+    diesel::sql_query("PRAGMA foreign_keys = ON")
+        .execute(&mut connection)
+        .expect("Failed to re-enable foreign key checks");
 }
 
 fn migration_conn() -> SqliteConnection {
