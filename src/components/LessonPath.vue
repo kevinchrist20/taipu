@@ -42,29 +42,24 @@ const handleStartTest = (test: Lesson) => {
 </script>
 
 <template>
-  <div class="relative">
-    <!-- Vertical Path Line -->
-    <div class="absolute left-12 top-0 bottom-0 w-1 bg-gray-700/50"></div>
+  <div class="space-y-3">
+    <!-- Lesson Cards -->
+    <LessonCard
+      v-for="(lesson, index) in lessons"
+      :key="lesson.id"
+      :lesson="lesson"
+      :index="index"
+      :is-completed="isLessonComplete(lesson.id)"
+      :is-locked="isLessonLocked(index)"
+      @start-lesson="handleStartLesson"
+    />
 
-    <div class="space-y-8">
-      <!-- Lesson Cards -->
-      <LessonCard
-        v-for="(lesson, index) in lessons"
-        :key="lesson.id"
-        :lesson="lesson"
-        :index="index"
-        :is-completed="isLessonComplete(lesson.id)"
-        :is-locked="isLessonLocked(index)"
-        @start-lesson="handleStartLesson"
-      />
-
-      <!-- Category Test -->
-      <CategoryTest
-        :tests="tests"
-        :all-lessons-completed="allLessonsCompleted"
-        :is-test-completed="isTestCompleted"
-        @start-test="handleStartTest"
-      />
-    </div>
+    <!-- Category Test -->
+    <CategoryTest
+      :tests="tests"
+      :all-lessons-completed="allLessonsCompleted"
+      :is-test-completed="isTestCompleted"
+      @start-test="handleStartTest"
+    />
   </div>
 </template>

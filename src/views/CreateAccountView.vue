@@ -5,6 +5,7 @@ import UserService from '../services/user.service';
 import useAlert from '../composables/useAlert';
 import router from '../router';
 import AppLogo from '../components/AppLogo.vue';
+import AppButton from '../components/AppButton.vue';
 
 const selectedAvatar = ref(0);
 const name = ref('');
@@ -39,17 +40,14 @@ function createAccount() {
 <template>
   <div class="min-h-screen bg-background flex flex-col">
     <!-- Header -->
-    <header class="flex items-center justify-between px-6 py-4 border-b border-border">
+    <header class="flex items-center justify-between px-5 py-2.5 border-b border-border bg-background/90 backdrop-blur-sm sticky top-0 z-40">
       <AppLogo size="sm" />
-      <button
-        @click="router.back()"
-        class="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <AppButton variant="ghost" size="sm" @click="router.back()">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 12H5M12 5l-7 7 7 7" />
         </svg>
-        Back
-      </button>
+        Back to selection
+      </AppButton>
     </header>
 
     <!-- Form -->
@@ -138,13 +136,9 @@ function createAccount() {
           </div>
 
           <!-- Submit -->
-          <button
-            type="submit"
-            :disabled="isLoading"
-            class="w-full py-3 rounded-xl bg-primary hover:bg-primary-glow text-primary-foreground font-semibold transition-all disabled:opacity-60 font-display"
-          >
-            {{ isLoading ? 'Creating...' : 'Start Typing' }}
-          </button>
+          <AppButton type="submit" size="lg" :loading="isLoading" :full="true">
+            Start Typing
+          </AppButton>
         </form>
       </div>
     </div>

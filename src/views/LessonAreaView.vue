@@ -153,20 +153,20 @@ onUnmounted(() => {
 
 <template>
     <!-- Loading State -->
-    <div v-if="lessonLoading || !activeLesson" class="flex justify-center items-center h-screen bg-gray-800 text-white">
+    <div v-if="lessonLoading || !activeLesson" class="flex justify-center items-center h-screen bg-background text-foreground">
         <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto mb-4"></div>
-            <p class="text-gray-400">Loading lesson...</p>
+            <div class="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4"></div>
+            <p class="text-muted-foreground">Loading lesson...</p>
         </div>
     </div>
 
     <!-- Lesson Content -->
-    <div v-else class="flex flex-col h-screen bg-gray-800 text-white relative">
+    <div v-else class="flex flex-col h-screen bg-background text-foreground relative">
         <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20">
             <div class="flex-grow overflow-auto p-4 h-[40rem]">
                 <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center">
-                        <h2 class="text-2xl font-bold text-gray-300">
+                        <h2 class="text-2xl font-bold text-foreground font-mono">
                             {{ activeLesson?.title }}
                         </h2>
                     </div>
@@ -174,10 +174,10 @@ onUnmounted(() => {
                         <!-- Pause/Resume Button -->
                         <button @click="togglePause"
                             :disabled="currentPosition === 0 || lessonCompleted || showStatsModal"
-                            class="p-3 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="p-2.5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border"
                             :class="{
-                                'bg-blue-600 hover:bg-blue-700 hover:scale-110': !showPauseModal,
-                                'bg-green-600 hover:bg-green-700 hover:scale-110': showPauseModal
+                                'bg-surface border-border text-muted-foreground hover:text-foreground hover:bg-surface-elevated': !showPauseModal,
+                                'bg-success/10 border-success/30 text-success hover:bg-success/20': showPauseModal
                             }">
                             <Pause v-if="!showPauseModal" :size="24" />
                             <Play v-else :size="24" />
@@ -185,7 +185,7 @@ onUnmounted(() => {
 
                         <!-- Exit Button -->
                         <button @click="confirmExit"
-                            class="p-3 rounded-xl bg-red-600 hover:bg-red-700 transition-all duration-300 hover:scale-110">
+                            class="p-2.5 rounded-xl bg-destructive/10 border border-destructive/25 text-destructive hover:bg-destructive/20 transition-all duration-200">
                             <LogOut :size="24" />
                         </button>
                     </div>
@@ -216,7 +216,7 @@ onUnmounted(() => {
                     @confirm="handleExitConfirm" @close="closeExitModal" />
 
                 <!-- Keyboard Area -->
-                <footer class="bg-gray-900 p-4 fixed bottom-0 left-0 w-full">
+                <footer class="bg-surface border-t border-border p-4 fixed bottom-0 left-0 w-full">
                     <Keyboard :next="nextKey(lessonContent)" :complete="rateInfo.percentComplete.value === 100"
                         @key-pressed="onKeyboardKeyPress" />
                 </footer>
@@ -232,44 +232,12 @@ onUnmounted(() => {
     white-space: pre-wrap;
 }
 
-.bg-indigo-600 {
-    background-color: #4F46E5;
-}
-
-.text-green-400 {
-    color: #4ADE80;
-}
-
-.text-red-500 {
-    color: #EF4444;
-    text-decoration: underline;
-}
-
-.text-gray-500 {
-    color: #6B7280;
-}
-
-.text-gray-300 {
-    color: #D1D5DB;
+.lesson-content-enter-active {
+    animation: bounce-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @keyframes bounce-in {
-    0% {
-        transform: scale(0.8);
-        opacity: 0;
-    }
-
-    70% {
-        transform: scale(1.05);
-    }
-
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.bg-gray-800 {
-    animation: bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    0% { transform: scale(0.97); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
 </style>

@@ -70,6 +70,25 @@ export default function useCategories() {
     return categoriesCache.value.find(cat => cat.category === categoryName);
   };
 
+  const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+    'home-left':           'Master the left-hand home row keys: A, S, D, F',
+    'home-right':          'Master the right-hand home row keys: J, K, L, ;',
+    'home-combined':       'Combine both hands on the home row for fluid typing',
+    'transition-top-home': 'Smooth transitions between the top and home rows',
+    'transition-home-bottom': 'Smooth transitions between the home and bottom rows',
+    'top-left':            'Learn the top-left row keys: Q, W, E, R',
+    'top-right':           'Learn the top-right row keys: U, I, O, P',
+    'top-home-combined':   'Combine the top row with the home row',
+    'bottom-left':         'Practice the bottom-left row keys: Z, X, C, V',
+    'bottom-right':        'Practice the bottom-right row keys: N, M, , .',
+    'punctuation':         'Add punctuation marks to your typing repertoire',
+    'full-keyboard':       'Master the full keyboard with real words and sentences',
+  };
+
+  const getCategoryDescription = (categoryName: string): string => {
+    return CATEGORY_DESCRIPTIONS[categoryName] ?? '';
+  };
+
   return {
     categories,
     loading: computed(() => loading.value),
@@ -77,6 +96,7 @@ export default function useCategories() {
     fetchCategories,
     formatCategoryName,
     clearCache,
-    getCategoryByName
+    getCategoryByName,
+    getCategoryDescription,
   };
 }

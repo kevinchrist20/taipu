@@ -19,7 +19,7 @@ const statusMessage = computed(() => `${props.percentage}%`)
 <template>
     <svg :width="diameter" :height="diameter" :viewBox="viewBox">
         <circle 
-            class="fill-none stroke-gray-200" 
+            class="fill-none stroke-border" 
             :cx="diameter / 2" 
             :cy="diameter / 2" 
             :r="radius"
@@ -29,7 +29,7 @@ const statusMessage = computed(() => `${props.percentage}%`)
             :cx="diameter / 2" 
             :cy="diameter / 2" 
             :r="radius"
-            class="fill-none stroke-violet-500 transition-all delay-200 ease-in" 
+            class="fill-none stroke-primary transition-all delay-200 ease-in" 
             :stroke-width="strokeWidth"
             stroke-linecap="round" 
             :stroke-dasharray="dashArray" 
@@ -41,8 +41,8 @@ const statusMessage = computed(() => `${props.percentage}%`)
             y="50%" 
             dy=".3em" 
             text-anchor="middle" 
-            fill="#FFFFFF"
-            class="font-semibold"
+            fill="currentColor"
+            class="font-semibold text-xs"
         >
             {{ statusMessage }}
         </text>

@@ -79,21 +79,21 @@ onMounted(async () => {
 
 <template>
     <div
-        class="flex flex-col items-center min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white font-sans px-4 pt-8 pb-20">
+        class="min-h-screen bg-background px-4 pt-6 pb-20">
         <BackButton />
 
         <div v-if="loading" class="flex justify-center items-center h-64">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+            <div class="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
         </div>
 
         <div v-else-if="!category" class="text-center py-16">
             <div class="text-6xl mb-4">❓</div>
-            <h3 class="text-xl font-bold text-gray-400 mb-2">Category Not Found</h3>
-            <p class="text-gray-500">The requested category could not be found.</p>
+            <h3 class="text-xl font-bold text-muted-foreground mb-2">Category Not Found</h3>
+            <p class="text-muted-foreground text-sm">The requested category could not be found.</p>
         </div>
 
         <!-- Category Lessons View -->
-        <div v-else class="w-full max-w-2xl">
+        <div v-else class="w-full max-w-2xl mx-auto mt-8">
             <!-- Category Header with Progress -->
             <CategoryHeader :category-name="formatCategoryName(category.category)"
                 :completed="getCategoryProgress(category).completed" :total="getCategoryProgress(category).total"

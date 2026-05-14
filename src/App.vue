@@ -1,41 +1,37 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
+import { RouterView, useRoute } from 'vue-router';
 import Alert from './components/alert/index.vue'
-
+import Header from './components/Header.vue';
 import UtilService from './services/util.service';
-import { onMounted } from 'vue';
+import { onMounted, computed } from 'vue';
+import { routes } from './constants';
+import { SessionStore } from './storage';
 
 onMounted(() => {
   UtilService.checkForUpdates();
+  // Apply saved theme on app start
+  const isDark = SessionStore.theme === 'DARK';
+  document.documentElement.classList.toggle('dark', isDark);
 });
 
+const route = useRoute();
+
+// Show the shell nav on authenticated views only
+const showShell = computed(() =>
+  route.path !== routes.home && route.path !== routes.createAccount
+);
 </script>
 
 <template>
-  <main>
+  <main class="flex flex-col min-h-screen bg-background text-foreground">
     <Alert />
-    <router-view v-slot="{ Component, route }">
-      <keep-alive :include="['Lessons', 'Category Lessons']">
-        <component :is="Component" :key="route.path" />
-      </keep-alive>
-    </router-view>
+    <Header v-if="showShell" />
+    <div class="flex-1 overflow-auto">
+      <router-view v-slot="{ Component, route: r }">
+        <keep-alive :include="['Lessons', 'Category Lessons']">
+          <component :is="Component" :key="r.path" />
+        </keep-alive>
+      </router-view>
+    </div>
   </main>
 </template>
-
-<style>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>

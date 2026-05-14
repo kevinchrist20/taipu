@@ -1,4 +1,6 @@
 export * from './alert/index.vue';
+export * from './AppButton.vue';
+export * from './AppLogo.vue';
 export * from './BackButton.vue';
 export * from './CategoryCard.vue';
 export * from './CategoryHeader.vue';

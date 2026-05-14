@@ -23,7 +23,7 @@ const emit = defineEmits<{
         <div class="grid grid-cols-1 gap-4">
             <button v-for="user in users" :key="user.id" @click="emit('selectUser', user)"
                 class="font-semibold rounded-lg py-3 px-5 shadow-md bg-gray-700 text-white transition-transform transform hover:bg-gray-600 hover:scale-105">
-                <span class="capitalize">{{ user.name }}</span> ({{ user.username }})
+                <span class="capitalize">{{ user.name }}</span>
             </button>
         </div>
     </Modal>

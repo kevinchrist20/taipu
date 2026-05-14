@@ -52,9 +52,9 @@ onUnmounted(() => {
 <template>
   <Transition name="modal">
     <div v-if="show" 
-         class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-80 z-20"
+         class="fixed inset-0 flex items-center justify-center bg-foreground/30 backdrop-blur-sm z-50"
          @click="handleBackdropClick">
-      <div class="bg-gray-800 rounded-lg shadow-2xl p-8 w-full mx-4 transform transition-all"
+      <div class="bg-card border border-border rounded-2xl shadow-elevated p-8 w-full mx-4 transform transition-all"
            :class="sizeClasses[size]"
            @click.stop>
         <slot />

@@ -10,20 +10,20 @@ defineProps<Props>();
 
 const getCharacterClass = (index: number, char: string, currentPosition: number, typedText: string) => {
   if (index < currentPosition && typedText[index] === char) {
-    return 'text-green-400';
+    return 'text-success';
   }
   if (index < currentPosition && typedText[index] !== char) {
-    return 'text-red-500';
+    return 'text-destructive underline';
   }
   if (index === currentPosition) {
-    return 'bg-indigo-600 text-white';
+    return 'bg-primary text-primary-foreground rounded';
   }
-  return 'text-gray-500';
+  return 'text-muted-foreground';
 };
 </script>
 
 <template>
-  <div class="bg-gray-700 rounded-lg p-6 text-4xl leading-relaxed shadow-md">
+  <div class="bg-surface rounded-xl p-6 text-4xl leading-relaxed border border-border font-mono">
     <span 
       v-for="(char, index) in content" 
       :key="index"
@@ -34,22 +34,3 @@ const getCharacterClass = (index: number, char: string, currentPosition: number,
     </span>
   </div>
 </template>
-
-<style scoped>
-.bg-indigo-600 {
-  background-color: #4F46E5;
-}
-
-.text-green-400 {
-  color: #4ADE80;
-}
-
-.text-red-500 {
-  color: #EF4444;
-  text-decoration: underline;
-}
-
-.text-gray-500 {
-  color: #6B7280;
-}
-</style>

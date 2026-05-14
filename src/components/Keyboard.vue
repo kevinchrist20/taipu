@@ -68,10 +68,10 @@ onBeforeUnmount(() => {
         :class="{
           'invisible': key.name === '',
           'grow flex-basis-25%': key.name === 'Space',
-          'bg-gray-700 text-white': key.type !== 'Special' && key.name !== nextKey,
-          'bg-indigo-600 text-white': key.name === nextKey || (key.name === 'Caps Lock' && isCapsLockActive),
-          'bg-gray-600 text-gray-300': key.type === 'Special',
-          'hover:bg-gray-600': key.type !== 'Special',
+          'bg-key text-key-foreground': key.type !== 'Special' && key.name !== nextKey,
+          'bg-primary text-primary-foreground shadow-md': key.name === nextKey || (key.name === 'Caps Lock' && isCapsLockActive),
+          'bg-surface text-muted-foreground': key.type === 'Special',
+          'hover:opacity-80': key.type !== 'Special',
           'shadow-inner transform scale-95': key.name.toLowerCase() === activeKey,
         }"
       >
