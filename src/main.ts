@@ -1,9 +1,10 @@
 import { createApp } from "vue";
+import 'virtual:uno.css';
+import './assets/styles.css';
 import App from "./App.vue";
 import router from "./router";
 import { createPinia } from "pinia";
-import 'virtual:uno.css';
-import '@unocss/reset/tailwind-compat.css'
+
 
 const pinia = createPinia();
 

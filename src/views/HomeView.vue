@@ -1,123 +1,70 @@
 <script setup lang="ts">
-import UserService from '../services/user.service';
-import UtilsService from '../services/util.service';
-
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { User } from '../types/bindings';
+import UserService from '../services/user.service';
 import router from '../router';
 import { SessionStore } from '../storage';
 import { routes } from '../constants';
-import UserListModal from '../components/modals/UserListModal.vue';
+import AppLogo from '../components/AppLogo.vue';
 
 const users = ref<User[]>([]);
-const showUsersModal = ref(false);
-const user = ref<User>()
 
-const homeScreenOptions = computed(() => [
-  {
-    title: "Continue Lesson",
-    disabled: users.value.length === 0,
-    action: continueLesson
-  },
-  {
-    title: "Start New Lesson",
-    action: () => router.push({ path: routes.createAccount })
-  },
-  {
-    title: "View Progress",
-    action: () => console.log("View Progress")
-  },
-  {
-    title: "Settings",
-    action: () => console.log("Settings")
-  },
-  {
-    title: "Quit Taipu",
-    action: exitApp
+const AVATARS = ['🦊', '🐼', '🐆', '🐨', '🐸', '🦉', '🦄', '🐙', '🦖', '🦕', '🐧', '🚀'];
+
+function getAvatar(user: User): string {
+  let hash = 0;
+  for (let i = 0; i < user.username.length; i++) {
+    hash = (hash * 31 + (user.username.codePointAt(i) ?? 0)) & 0xffff;
   }
-]);
-
-function exitApp() {
-  UtilsService.exitApp();
+  return AVATARS[hash % AVATARS.length];
 }
 
-async function getUsers() {
+function selectUser(user: User) {
+  SessionStore.setUser(user);
+  router.push({ path: routes.lessons });
+}
+
+onMounted(async () => {
   try {
     users.value = await UserService.getUsers();
   } catch (error) {
     console.error(error);
   }
-}
-
-function continueLesson() {
-  if (users.value.length === 1) {
-    SessionStore.setUser(users.value[0]);
-    router.push({ path: routes.lessons });
-    return;
-  }
-
-  showUsersModal.value = users.value.length > 1;
-}
-
-function selectUser(value: User) {
-  console.log(value);
-  
-  user.value = value;
-  SessionStore.setUser(value);
-  router.push({ path: routes.lessons });
-}
-
-onMounted(async () => await getUsers())
+});
 </script>
 
 <template>
-  <div class="h-screen w-screen bg-gray-800 text-white flex items-center justify-center font-mono">
-    <div class="p-8 rounded-lg bg-gray-900 bg-opacity-80 shadow-lg max-w-lg w-full">
-      <h1 class="text-4xl font-bold text-center mb-6">Welcome to Taipu</h1>
-      <div class="grid grid-cols-1 gap-4">
-        <button v-for="(option, index) in homeScreenOptions" :key="option.title" @click="option.action"
-          :disabled="option.disabled" :class="[
-            'font-semibold rounded-lg py-3 px-5 shadow-md',
-            index === homeScreenOptions.length - 1
-              ? 'bg-red-600 hover:bg-red-700 text-white'
-              : 'bg-gray-700 text-white',
-            {
-              'opacity-50 pointer-events-none': option.disabled,
-              'transition-transform transform hover:bg-gray-600 hover:scale-105': !option.disabled
-            }
-          ]">
-          {{ option.title }}
-        </button>
-      </div>
+  <div class="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+    <!-- Brand -->
+    <div class="flex flex-col items-center mb-10">
+      <AppLogo size="lg" class="mb-4" />
+      <p class="text-muted-foreground text-sm mt-3 text-center max-w-xs font-display">
+        Focus, practice, and master typing. Select your profile to continue.
+      </p>
     </div>
 
-    <UserListModal :users="users" :show="showUsersModal" @select-user="selectUser" @close="showUsersModal == false" />
+    <!-- Profile Cards -->
+    <div class="flex flex-wrap gap-4 justify-center max-w-xl">
+      <button
+        v-for="user in users"
+        :key="user.id"
+        @click="selectUser(user)"
+        class="flex flex-col items-center gap-2 w-36 py-6 px-4 rounded-2xl bg-card border border-border hover:border-primary hover:bg-surface-elevated transition-all"
+      >
+        <span class="text-4xl leading-none">{{ getAvatar(user) }}</span>
+        <span class="text-sm font-medium text-foreground capitalize mt-1 font-sans">{{ user.name }}</span>
+      </button>
+
+      <!-- New Profile -->
+      <button
+        @click="router.push({ path: routes.createAccount })"
+        class="flex flex-col items-center gap-2 w-36 py-6 px-4 rounded-2xl border-2 border-dashed border-border hover:border-primary hover:bg-surface-elevated transition-all"
+      >
+        <div class="w-10 h-10 rounded-full border-2 border-border flex items-center justify-center text-muted-foreground text-2xl leading-none">
+          +
+        </div>
+        <span class="text-sm font-medium text-muted-foreground mt-1 font-sans">New Profile</span>
+      </button>
+    </div>
   </div>
 </template>
-
-<style scoped>
-@font-face {
-  font-family: 'Retro';
-  src: url('/fonts/retro.ttf') format('truetype');
-}
-
-.font-mono {
-  font-family: 'Retro', monospace;
-}
-
-.fade-in {
-  animation: fadeIn 1s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>
