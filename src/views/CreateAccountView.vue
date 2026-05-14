@@ -1,17 +1,29 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { difficultyOptions, languageOptions, themeOptions } from '../types';
+import { difficultyOptions, languageOptions } from '../types';
 import UserService from '../services/user.service';
 import useAlert from '../composables/useAlert';
 import router from '../router';
 import AppLogo from '../components/AppLogo.vue';
 
-const AVATARS = ['🦊', '🐼', '🐆', '🐨', '🐸', '🦉', '🦄', '🐙', '🦖', '🦕', '🐧', '🚀'];
+const AVATARS: { slug: string; emoji: string }[] = [
+  { slug: 'fox',      emoji: '🦊' },
+  { slug: 'panda',    emoji: '🐼' },
+  { slug: 'leopard',  emoji: '🐆' },
+  { slug: 'koala',    emoji: '🐨' },
+  { slug: 'frog',     emoji: '🐸' },
+  { slug: 'owl',      emoji: '🦉' },
+  { slug: 'unicorn',  emoji: '🦄' },
+  { slug: 'octopus',  emoji: '🐙' },
+  { slug: 'trex',     emoji: '🦖' },
+  { slug: 'dino',     emoji: '🦕' },
+  { slug: 'penguin',  emoji: '🐧' },
+  { slug: 'rocket',   emoji: '🚀' },
+];
 
 const selectedAvatar = ref(0);
 const name = ref('');
 const language = ref('ENGLISH');
-const theme = ref('DARK');
 const lessonDifficulty = ref('BEGINNER');
 const isLoading = ref(false);
 
@@ -22,14 +34,11 @@ function createAccount() {
   }
 
   isLoading.value = true;
-  const slug = name.value.trim().toLowerCase().replace(/\s+/g, '_');
 
   UserService.createUser({
     name: name.value.trim(),
-    username: slug,
-    keyboardType: 'QWERTY',
+    avatar: AVATARS[selectedAvatar.value].slug,
     language: language.value,
-    theme: theme.value,
     lessonDifficulty: lessonDifficulty.value,
   }).then(() => {
     useAlert().setAlert({ message: 'Profile created!', type: 'success' });
@@ -74,7 +83,7 @@ function createAccount() {
             <div class="grid grid-cols-6 gap-2">
               <button
                 v-for="(avatar, i) in AVATARS"
-                :key="i"
+                :key="avatar.slug"
                 type="button"
                 @click="selectedAvatar = i"
                 :class="[
@@ -84,7 +93,7 @@ function createAccount() {
                     : 'border-border bg-surface hover:bg-surface-elevated'
                 ]"
               >
-                {{ avatar }}
+                {{ avatar.emoji }}
               </button>
             </div>
           </div>
@@ -113,27 +122,6 @@ function createAccount() {
                 :class="[
                   'flex-1 py-2 rounded-xl text-sm font-medium border transition-all font-sans',
                   language === option.value
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-surface border-border text-muted-foreground hover:border-primary hover:text-foreground'
-                ]"
-              >
-                {{ option.label }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Theme -->
-          <div>
-            <span class="block text-sm font-medium text-foreground mb-2 font-display">Theme</span>
-            <div class="flex gap-2">
-              <button
-                v-for="option in themeOptions"
-                :key="option.value"
-                type="button"
-                @click="theme = option.value"
-                :class="[
-                  'flex-1 py-2 rounded-xl text-sm font-medium border transition-all font-sans',
-                  theme === option.value
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-surface border-border text-muted-foreground hover:border-primary hover:text-foreground'
                 ]"

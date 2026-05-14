@@ -9,14 +9,23 @@ import AppLogo from '../components/AppLogo.vue';
 
 const users = ref<User[]>([]);
 
-const AVATARS = ['🦊', '🐼', '🐆', '🐨', '🐸', '🦉', '🦄', '🐙', '🦖', '🦕', '🐧', '🚀'];
+const AVATAR_MAP: Record<string, string> = {
+  fox:     '🦊',
+  panda:   '🐼',
+  leopard: '🐆',
+  koala:   '🐨',
+  frog:    '🐸',
+  owl:     '🦉',
+  unicorn: '🦄',
+  octopus: '🐙',
+  trex:    '🦖',
+  dino:    '🦕',
+  penguin: '🐧',
+  rocket:  '🚀',
+};
 
 function getAvatar(user: User): string {
-  let hash = 0;
-  for (let i = 0; i < user.username.length; i++) {
-    hash = (hash * 31 + (user.username.codePointAt(i) ?? 0)) & 0xffff;
-  }
-  return AVATARS[hash % AVATARS.length];
+  return AVATAR_MAP[user.avatar] ?? '🦊';
 }
 
 function selectUser(user: User) {
