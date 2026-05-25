@@ -30,28 +30,27 @@ function isActive(path: string) {
 
 <template>
   <header
-    class="flex items-center justify-between px-5 py-2.5 border-b border-border bg-white backdrop-blur-sm shrink-0 sticky top-0 z-40">
+    class="flex items-center justify-between px-5 py-2.5 border-b border-border bg-surface-elevated backdrop-blur-sm shrink-0 sticky top-0 z-40">
     <!-- Left: Logo -->
     <AppLogo size="sm" />
 
     <!-- Right: Nav + Actions -->
     <div class="flex items-center gap-2">
       <button @click="router.push({ path: routes.lessons })"
-        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all" :class="isActive(routes.lessons)
-          ? 'bg-surface text-foreground'
-          : 'text-muted-foreground hover:text-foreground hover:bg-surface'">
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-surface" :class="isActive(routes.lessons)
+          ? 'bg-primary'
+          : 'hover:bg-surface hover:text-foreground text-muted-foreground'">
         <LayoutDashboard :size="14" />
         Dashboard
       </button>
 
-      <button
-        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-white hover:bg-primary/10">
+      <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-surface"
+        @click="router.push({ path: routes.stats })" :class="isActive(routes.stats)
+          ? 'bg-primary'
+          : 'hover:bg-surface hover:text-foreground text-muted-foreground'">
         <BarChart2 :size="14" />
         Stats
       </button>
-
-      <!-- Divider -->
-      <div class="w-px h-5 bg-border mx-1" />
 
       <!-- User pill (Profile) -->
       <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-surface border border-border">
@@ -59,9 +58,12 @@ function isActive(path: string) {
         <span class="text-sm font-medium text-foreground capitalize">{{ user?.name }}</span>
       </div>
 
+      <!-- Divider -->
+      <div class="w-px h-5 bg-border mx-1" />
+
       <!-- Theme toggle -->
       <button @click="toggleTheme"
-        class="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface transition-all bg-white"
+        class="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface transition-all bg-background"
         :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
         <Sun v-if="isDark" :size="16" />
         <Moon v-else :size="16" />
@@ -69,7 +71,7 @@ function isActive(path: string) {
 
       <!-- Logout -->
       <button @click="logout"
-        class="w-8 h-8 flex items-center justify-center text-white rounded-lg hover:text-foreground hover:bg-surface transition-all bg-red-600"
+        class="w-8 h-8 flex items-center justify-center text-white rounded-lg hover:text-red-600 hover:bg-red-100 transition-all bg-red-600"
         title="Sign out">
         <LogOut :size="15" />
       </button>

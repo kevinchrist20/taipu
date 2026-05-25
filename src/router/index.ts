@@ -35,6 +35,11 @@ const router = createRouter({
             name: 'Lesson Area',
             component: LessonAreaView
         },
+        {
+            path: routes.stats,
+            name: 'Stats',
+            component: () => import("../views/StatsView.vue")
+        }
     ]
 });
 

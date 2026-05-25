@@ -4,4 +4,5 @@ export const routes = {
     lessons: "/lessons",
     categoryLessons: "/lessons/:category",
     lessonArea: "/lesson/:id",
+    stats: "/stats",
 };
