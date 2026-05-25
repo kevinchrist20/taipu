@@ -7,6 +7,7 @@ import useAlert from './useAlert';
 const completedLessonsCache = ref<number[]>([]);
 const loading = ref(false);
 const lastFetchTime = ref<number | null>(null);
+const cachedUserId = ref<number | null>(null);
 
 const CACHE_DURATION = 3 * 60 * 1000;
 
@@ -19,10 +20,6 @@ export default function useCompletedLessons() {
   });
 
   const fetchCompletedLessons = async (forceRefresh = false) => {
-    if (!forceRefresh && isDataFresh.value) {
-      return completedLessonsCache.value;
-    }
-
     try {
       loading.value = true;
       const user = SessionStore.user;
@@ -31,10 +28,21 @@ export default function useCompletedLessons() {
         throw new Error('User not found in session');
       }
 
+      const userChanged = cachedUserId.value !== user.id;
+      if (userChanged) {
+        completedLessonsCache.value = [];
+        lastFetchTime.value = null;
+      }
+
+      if (!forceRefresh && !userChanged && isDataFresh.value) {
+        return completedLessonsCache.value;
+      }
+
       const fetchedCompletedLessons = await LessonService.getCompletedLessons(user.id);
       
       completedLessonsCache.value = fetchedCompletedLessons;
       lastFetchTime.value = Date.now();
+      cachedUserId.value = user.id;
       
       return fetchedCompletedLessons;
     } catch (error) {
@@ -66,6 +74,7 @@ export default function useCompletedLessons() {
   const clearCache = () => {
     completedLessonsCache.value = [];
     lastFetchTime.value = null;
+    cachedUserId.value = null;
   };
 
   const refreshCompletedLessons = async () => {
