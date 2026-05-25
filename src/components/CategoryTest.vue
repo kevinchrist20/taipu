@@ -23,7 +23,7 @@ const handleTestClick = (test: Lesson) => {
 </script>
 
 <template>
-  <div v-if="tests.length" class="flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 transition-all"
+  <div v-if="tests.length" class="flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-5 transition-all shadow-md"
     :class="allLessonsCompleted ? 'hover:border-warning cursor-pointer' : 'opacity-50'"
     @click="allLessonsCompleted ? handleTestClick(tests[0]) : null"
   >
@@ -31,7 +31,7 @@ const handleTestClick = (test: Lesson) => {
     <div class="flex-1 min-w-0">
       <p class="font-mono font-semibold text-base text-foreground leading-snug flex items-center gap-2">
         {{ tests[0]?.title ?? 'Unit Test' }}
-        <span class="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/25">TEST</span>
+        <span class="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm bg-red-100 text-destructive">TEST</span>
         <Lock v-if="!allLessonsCompleted" :size="13" class="text-muted-foreground" />
       </p>
     </div>
@@ -43,7 +43,7 @@ const handleTestClick = (test: Lesson) => {
       :class="!allLessonsCompleted
         ? 'bg-surface text-muted-foreground cursor-not-allowed border border-border'
         : tests.length && isTestCompleted(tests[0].id)
-          ? 'bg-success/10 text-success border border-success/30 hover:bg-success/20'
+          ? 'bg-success/10 border text-primary-foreground border-success/10 hover:bg-success/10'
           : 'bg-warning text-warning-foreground hover:opacity-90 active:scale-95'"
       @click.stop="allLessonsCompleted ? handleTestClick(tests[0]) : null"
     >

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, Lock, Play } from 'lucide-vue-next';
+import { Check, Lock, Play, Redo } from 'lucide-vue-next';
 import { Lesson } from '../types/bindings';
 
 interface Props {
@@ -25,7 +25,7 @@ const handleLessonClick = () => {
 
 <template>
   <div
-    class="flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 transition-all"
+    class="flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 transition-all shadow-md"
     :class="isLocked ? 'opacity-50' : 'hover:border-primary cursor-pointer'"
     @click="handleLessonClick"
   >
@@ -48,11 +48,11 @@ const handleLessonClick = () => {
       :class="isLocked
         ? 'bg-surface text-muted-foreground cursor-not-allowed border border-border'
         : isCompleted
-          ? 'bg-success/10 text-success border border-success/30 hover:bg-success/20'
+          ? 'bg-success/10 border text-primary-foreground border-success/10 hover:bg-success/10'
           : 'bg-primary text-primary-foreground hover:opacity-90 active:scale-95'"
       @click.stop="handleLessonClick"
     >
-      <component :is="isCompleted ? Check : Play" :size="13" />
+      <component :is="isCompleted ? Redo : Play" :size="13" />
       {{ isCompleted ? 'Redo' : 'Start' }}
     </button>
   </div>
