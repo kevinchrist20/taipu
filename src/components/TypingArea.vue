@@ -23,7 +23,7 @@ const getCharacterClass = (index: number, char: string, currentPosition: number,
 </script>
 
 <template>
-  <div class="bg-surface rounded-xl p-6 text-4xl leading-relaxed border border-border font-mono">
+  <div class="bg-surface rounded-bl-xl rounded-br-xl p-6 text-4xl leading-relaxed border border-border font-mono">
     <span 
       v-for="(char, index) in content" 
       :key="index"

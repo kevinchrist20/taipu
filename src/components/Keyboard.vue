@@ -42,13 +42,13 @@ function releaseButton() {
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', handlePhysicalKeyPress)
-  window.addEventListener('keyup', releaseButton)
+  globalThis.addEventListener('keydown', handlePhysicalKeyPress)
+  globalThis.addEventListener('keyup', releaseButton)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handlePhysicalKeyPress)
-  window.removeEventListener('keyup', releaseButton)
+  globalThis.removeEventListener('keydown', handlePhysicalKeyPress)
+  globalThis.removeEventListener('keyup', releaseButton)
 })
 </script>
 
@@ -69,9 +69,8 @@ onBeforeUnmount(() => {
           'invisible': key.name === '',
           'grow flex-basis-25%': key.name === 'Space',
           'bg-key text-key-foreground': key.type !== 'Special' && key.name !== nextKey,
-          'bg-primary text-primary-foreground shadow-md': key.name === nextKey || (key.name === 'Caps Lock' && isCapsLockActive),
-          'bg-surface text-muted-foreground': key.type === 'Special',
-          'hover:opacity-80': key.type !== 'Special',
+          'bg-primary text-primary-foreground shadow-md animate-bounce': key.name === nextKey || (key.name === 'Caps Lock' && isCapsLockActive),
+          'bg-surface text-muted-foreground': key.type === 'Special' && key.name !== nextKey && !(key.name === 'Caps Lock' && isCapsLockActive),
           'shadow-inner transform scale-95': key.name.toLowerCase() === activeKey,
         }"
       >

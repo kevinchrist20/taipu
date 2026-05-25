@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { OctagonX } from 'lucide-vue-next';
 import Modal from './Modal.vue';
+import AppButton from '../AppButton.vue';
 
 interface Props {
     show: boolean;
@@ -18,13 +20,9 @@ const emit = defineEmits<{
     <Modal :show="show" size="md" :close-on-escape="true" @close="emit('cancel')">
         <div class="text-center">
             <div class="mb-6">
-                <div class="w-16 h-16 bg-destructive/10 border border-destructive/25 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-destructive" viewBox="0 0 20 20"
-                        fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                            clip-rule="evenodd" />
-                    </svg>
+                <div
+                    class="w-16 h-16 border border-destructive/25 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <OctagonX class="h-8 w-8 text-destructive" />
                 </div>
                 <h3 class="text-2xl font-bold text-foreground mb-2 font-display">Exit Lesson?</h3>
                 <p class="text-muted-foreground text-sm" v-if="hasProgress">
@@ -36,14 +34,12 @@ const emit = defineEmits<{
             </div>
 
             <div class="flex gap-3">
-                <button @click="emit('cancel')"
-                    class="flex-1 px-5 py-2.5 bg-surface border border-border text-muted-foreground font-semibold rounded-xl hover:text-foreground hover:bg-surface-elevated transition-all">
+                <AppButton @click="emit('cancel')" size="md" variant="ghost" class="flex-1 px-5 py-2.5">
                     Cancel
-                </button>
-                <button @click="emit('confirm')"
-                    class="flex-1 px-5 py-2.5 bg-destructive text-destructive-foreground font-semibold rounded-xl hover:opacity-90 transition-all">
+                </AppButton>
+                <AppButton @click="emit('confirm')" variant="danger" class="flex-1 px-5 py-2.5 ">
                     Exit
-                </button>
+                </AppButton>
             </div>
         </div>
     </Modal>

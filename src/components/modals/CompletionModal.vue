@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { InfoIcon } from 'lucide-vue-next';
 import Modal from './Modal.vue';
 
 interface Props {
@@ -37,22 +38,6 @@ function getGradeColor(grade: string) {
     }
 }
 
-function getBorderColor(grade: string) {
-    switch (grade) {
-        case 'S':
-        case 'A':
-            return 'border-success';
-        case 'B':
-            return 'border-ring';
-        case 'C':
-            return 'border-warning';
-        case 'D':
-            return 'border-destructive';
-        default:
-            return 'border-border';
-    }
-}
-
 function getStatColor(value: number, required: number) {
     return value >= required ? 'text-success' : 'text-destructive';
 }
@@ -60,7 +45,7 @@ function getStatColor(value: number, required: number) {
 
 <template>
     <Modal :show="show" size="md" :close-on-escape="false">
-        <div class="border-2 rounded-2xl p-6 -m-6" :class="getBorderColor(grade)">
+        <div class="rounded-2xl p-6 -m-6">
             <div class="text-center">
                 <!-- Header -->
                 <div class="mb-6">
@@ -124,29 +109,24 @@ function getStatColor(value: number, required: number) {
 
                 <!-- Action Buttons -->
                 <div class="flex gap-3">
-                    <button @click="emit('retry')"
+                    <AppButton @click="emit('retry')"
                         class="flex-1 px-5 py-2.5 bg-warning text-warning-foreground font-semibold rounded-xl hover:opacity-90 transition-all">
                         Retry
-                    </button>
+                    </AppButton>
 
-                    <button @click="passed ? emit('continue') : null" :disabled="!passed" :class="[
+                    <AppButton @click="passed ? emit('continue') : null" :disabled="!passed" :class="[
                         'flex-1 px-5 py-2.5 font-semibold rounded-xl transition-all',
                         passed
                             ? 'bg-primary text-primary-foreground hover:opacity-90 cursor-pointer'
                             : 'bg-surface text-muted-foreground border border-border cursor-not-allowed'
                     ]">
                         {{ passed ? 'Continue' : 'Locked' }}
-                    </button>
+                    </AppButton>
                 </div>
 
                 <!-- Help Text -->
                 <div v-if="!passed" class="mt-4 text-xs text-muted-foreground bg-surface rounded-xl p-3 border border-border text-left flex items-start gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary" viewBox="0 0 20 20"
-                        fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <InfoIcon :size="16" class="text-primary mt-0.5" />
                     Meet both accuracy and WPM requirements to unlock the next lesson
                 </div>
             </div>

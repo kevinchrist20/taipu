@@ -14,15 +14,16 @@ import useRateInfo from '../composables/useRateInfo';
 import useLessonProgress from '../composables/useLessonProgress';
 import useModalState from '../composables/useModalState';
 import useKeyboardHandler from '../composables/useKeyboardHandler';
-import { LogOut, Pause, Play } from 'lucide-vue-next';
+import { OctagonX, Pause, Play } from 'lucide-vue-next';
 import CompletionModal from '../components/modals/CompletionModal.vue';
 import PauseModal from '../components/modals/PauseModal.vue';
 import ExitConfirmModal from '../components/modals/ExitConfirmModal.vue';
 import TypingArea from '../components/TypingArea.vue';
+import AppButton from '../components/AppButton.vue';
 
 const route = useRoute();
 const router = useRouter();
-const lessonId = parseInt(route.params.id as string);
+const lessonId = Number.parseInt(route.params.id as string);
 const user = SessionStore.user;
 
 // Composables
@@ -135,7 +136,7 @@ useKeyboardHandler({
 });
 
 onMounted(async () => {
-    if (!lessonId || isNaN(lessonId)) {
+    if (!lessonId || Number.isNaN(lessonId)) {
         router.push({ path: routes.lessons });
         return;
     }
@@ -153,7 +154,7 @@ onUnmounted(() => {
 
 <template>
     <!-- Loading State -->
-    <div v-if="lessonLoading || !activeLesson" class="flex justify-center items-center h-screen bg-background text-foreground">
+    <div v-if="lessonLoading || !activeLesson" class="flex flex-1 min-h-0 justify-center items-center bg-background text-foreground overflow-hidden">
         <div class="text-center">
             <div class="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4"></div>
             <p class="text-muted-foreground">Loading lesson...</p>
@@ -161,9 +162,9 @@ onUnmounted(() => {
     </div>
 
     <!-- Lesson Content -->
-    <div v-else class="flex flex-col h-screen bg-background text-foreground relative">
-        <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20">
-            <div class="flex-grow overflow-auto p-4 h-[40rem]">
+    <div v-else class="flex flex-1 min-h-0 flex-col bg-background text-foreground overflow-hidden">
+        <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20 flex-1 min-h-0">
+            <div class="flex min-h-0 flex-col p-4">
                 <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center">
                         <h2 class="text-2xl font-bold text-foreground font-mono">
@@ -172,22 +173,21 @@ onUnmounted(() => {
                     </div>
                     <div class="flex space-x-3">
                         <!-- Pause/Resume Button -->
-                        <button @click="togglePause"
+                        <AppButton @click="togglePause" 
                             :disabled="currentPosition === 0 || lessonCompleted || showStatsModal"
-                            class="p-2.5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border"
-                            :class="{
-                                'bg-surface border-border text-muted-foreground hover:text-foreground hover:bg-surface-elevated': !showPauseModal,
-                                'bg-success/10 border-success/30 text-success hover:bg-success/20': showPauseModal
-                            }">
+                            :variant="showPauseModal ? 'secondary' : 'ghost'"
+                            class="p-2.5 transition-all duration-200">
                             <Pause v-if="!showPauseModal" :size="24" />
                             <Play v-else :size="24" />
-                        </button>
+                        </AppButton>
 
                         <!-- Exit Button -->
-                        <button @click="confirmExit"
-                            class="p-2.5 rounded-xl bg-destructive/10 border border-destructive/25 text-destructive hover:bg-destructive/20 transition-all duration-200">
-                            <LogOut :size="24" />
-                        </button>
+                        <AppButton @click="confirmExit"
+                            :disabled="currentPosition === 0 || lessonCompleted || showStatsModal"
+                            variant="danger"
+                            class="p-2.5 transition-all duration-200">
+                            <OctagonX :size="24" />
+                        </AppButton>
                     </div>
                 </div>
 
@@ -199,7 +199,7 @@ onUnmounted(() => {
                 }" />
 
                 <!-- Main Content Area -->
-                <main class="flex-grow overflow-auto">
+                <main class="flex-grow min-h-0 overflow-auto pb-4">
                     <TypingArea :content="lessonContent" :current-position="currentPosition" :typed-text="typedText" />
                 </main>
 
@@ -216,7 +216,7 @@ onUnmounted(() => {
                     @confirm="handleExitConfirm" @close="closeExitModal" />
 
                 <!-- Keyboard Area -->
-                <footer class="bg-surface border-t border-border p-4 fixed bottom-0 left-0 w-full">
+                <footer class="border-t border-border p-4 shrink-0">
                     <Keyboard :next="nextKey(lessonContent)" :complete="rateInfo.percentComplete.value === 100"
                         @key-pressed="onKeyboardKeyPress" />
                 </footer>
