@@ -76,15 +76,13 @@ pub fn get_lessons_by_categories(
         "home-left",
         "home-right",
         "home-combined",
-        "transition-top-home",
-        "transition-home-bottom",
-        "top-left",
-        "top-right",
-        "top-home-combined",
-        "bottom-left",
-        "bottom-right",
+        "top-row",
+        "bottom-row",
+        "row-transitions",
         "punctuation",
-        "full-keyboard",
+        "common-words",
+        "numbers-row",
+        "speed-drills",
     ];
 
     // Sort categories by the predefined order

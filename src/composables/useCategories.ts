@@ -80,18 +80,16 @@ export default function useCategories() {
   };
 
   const CATEGORY_DESCRIPTIONS: Record<string, string> = {
-    'home-left':           'Master the left-hand home row keys: A, S, D, F',
-    'home-right':          'Master the right-hand home row keys: J, K, L, ;',
-    'home-combined':       'Combine both hands on the home row for fluid typing',
-    'transition-top-home': 'Smooth transitions between the top and home rows',
-    'transition-home-bottom': 'Smooth transitions between the home and bottom rows',
-    'top-left':            'Learn the top-left row keys: Q, W, E, R',
-    'top-right':           'Learn the top-right row keys: U, I, O, P',
-    'top-home-combined':   'Combine the top row with the home row',
-    'bottom-left':         'Practice the bottom-left row keys: Z, X, C, V',
-    'bottom-right':        'Practice the bottom-right row keys: N, M, , .',
-    'punctuation':         'Add punctuation marks to your typing repertoire',
-    'full-keyboard':       'Master the full keyboard with real words and sentences',
+    'home-left':      'Master the left-hand home row keys: A, S, D, F',
+    'home-right':     'Master the right-hand home row keys: J, K, L, ;',
+    'home-combined':  'Combine both hands on the home row for fluid typing',
+    'top-row':        'Learn the top row keys: Q W E R T Y U I O P',
+    'bottom-row':     'Practice the bottom row keys: Z X C V B N M',
+    'row-transitions':'Smooth transitions between all three rows',
+    'punctuation':    'Add punctuation marks to your typing repertoire',
+    'common-words':   'Type the most frequently used words in English',
+    'numbers-row':    'Master the number keys across the top of the keyboard',
+    'speed-drills':   'Push your WPM with rapid-fire speed drills',
   };
 
   const getCategoryDescription = (categoryName: string): string => {
