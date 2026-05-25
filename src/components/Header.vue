@@ -6,6 +6,7 @@ import AppLogo from './AppLogo.vue';
 import { SessionStore } from '../storage';
 import { avatarEmoji } from '../types';
 import { routes } from '../constants';
+import AppButton from './AppButton.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -36,45 +37,38 @@ function isActive(path: string) {
 
     <!-- Right: Nav + Actions -->
     <div class="flex items-center gap-2">
-      <button @click="router.push({ path: routes.lessons })"
-        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-surface" :class="isActive(routes.lessons)
-          ? 'bg-primary'
-          : 'hover:bg-surface hover:text-foreground text-muted-foreground'">
+      <AppButton size="sm" @click="router.push({ path: routes.lessons })"
+        :variant="isActive(routes.lessons) ? 'primary' : 'secondary'">
         <LayoutDashboard :size="14" />
         Dashboard
-      </button>
+      </AppButton>
 
-      <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-surface"
-        @click="router.push({ path: routes.stats })" :class="isActive(routes.stats)
-          ? 'bg-primary'
-          : 'hover:bg-surface hover:text-foreground text-muted-foreground'">
+      <AppButton size="sm" @click="router.push({ path: routes.stats })"
+        :variant="isActive(routes.stats) ? 'primary' : 'secondary'">
         <BarChart2 :size="14" />
         Stats
-      </button>
+      </AppButton>
 
       <!-- User pill (Profile) -->
-      <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-surface border border-border">
+      <AppButton variant="ghost" size="sm" @click="router.push({})">
         <span class="text-sm leading-none">{{ user ? avatarEmoji(user.avatar) : '👤' }}</span>
         <span class="text-sm font-medium text-foreground capitalize">{{ user?.name }}</span>
-      </div>
+      </AppButton>
 
       <!-- Divider -->
       <div class="w-px h-5 bg-border mx-1" />
 
       <!-- Theme toggle -->
-      <button @click="toggleTheme"
-        class="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface transition-all bg-background"
+      <AppButton @click="toggleTheme" variant="secondary" size="sm"
         :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
         <Sun v-if="isDark" :size="16" />
         <Moon v-else :size="16" />
-      </button>
+      </AppButton>
 
       <!-- Logout -->
-      <button @click="logout"
-        class="w-8 h-8 flex items-center justify-center text-white rounded-lg hover:text-red-600 hover:bg-red-100 transition-all bg-red-600"
-        title="Sign out">
+      <AppButton variant="danger" size="sm" @click="logout" title="Sign out">
         <LogOut :size="15" />
-      </button>
+      </AppButton>
     </div>
   </header>
 </template>

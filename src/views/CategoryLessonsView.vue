@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ChevronLeft } from 'lucide-vue-next';
+import { ArrowLeft } from 'lucide-vue-next';
 import LessonPath from '../components/LessonPath.vue';
 import { routes } from '../constants';
 import { SessionStore } from '../storage';
@@ -9,6 +9,7 @@ import { Lesson, User } from '../types/bindings';
 import useCategories from '../composables/useCategories';
 import useCompletedLessons from '../composables/useCompletedLessons';
 import useCategoryProgress from '../composables/useCategoryProgress';
+import AppButton from '../components/AppButton.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -74,9 +75,9 @@ const allLessonsCompleted = computed(() => {
 
 function difficultyStyle(d: string) {
     const level = d.toLowerCase();
-    if (level === 'beginner')     return { color: 'var(--success)',     backgroundColor: 'color-mix(in oklch, var(--success) 12%, transparent)',     borderColor: 'color-mix(in oklch, var(--success) 40%, transparent)' };
-    if (level === 'intermediate') return { color: 'var(--warning)',     backgroundColor: 'color-mix(in oklch, var(--warning) 12%, transparent)',     borderColor: 'color-mix(in oklch, var(--warning) 40%, transparent)' };
-    return                               { color: 'var(--destructive)', backgroundColor: 'color-mix(in oklch, var(--destructive) 12%, transparent)', borderColor: 'color-mix(in oklch, var(--destructive) 40%, transparent)' };
+    if (level === 'beginner') return { color: 'var(--success)', backgroundColor: 'color-mix(in oklch, var(--success) 12%, transparent)', borderColor: 'color-mix(in oklch, var(--success) 40%, transparent)' };
+    if (level === 'intermediate') return { color: 'var(--warning)', backgroundColor: 'color-mix(in oklch, var(--warning) 12%, transparent)', borderColor: 'color-mix(in oklch, var(--warning) 40%, transparent)' };
+    return { color: 'var(--destructive)', backgroundColor: 'color-mix(in oklch, var(--destructive) 12%, transparent)', borderColor: 'color-mix(in oklch, var(--destructive) 40%, transparent)' };
 }
 
 onMounted(async () => {
@@ -101,20 +102,16 @@ onMounted(async () => {
 
             <template v-else>
                 <!-- Back link -->
-                <button
-                    @click="router.push({ path: routes.lessons })"
-                    class="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-                >
-                    <ChevronLeft :size="15" />
-                    Back to Dashboard
-                </button>
+                <AppButton variant="ghost" size="sm" @click="router.back()" class="mb-6">
+                    <ArrowLeft class="w-3.5 h-3.5" />
+                    Back to selection
+                </AppButton>
 
                 <!-- Category meta -->
                 <div class="mb-8">
                     <span
                         class="inline-block text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border mb-3"
-                        :style="difficultyStyle(category.lessons[0]?.difficulty ?? 'beginner')"
-                    >
+                        :style="difficultyStyle(category.lessons[0]?.difficulty ?? 'beginner')">
                         {{ category.lessons[0]?.difficulty ?? 'BEGINNER' }}
                     </span>
                     <h1 class="text-3xl font-bold font-mono text-foreground mb-2">
@@ -126,14 +123,8 @@ onMounted(async () => {
                 </div>
 
                 <!-- Lesson list -->
-                <LessonPath
-                    :lessons="category.lessons"
-                    :tests="category.tests"
-                    :completed-lessons="completedLessons"
-                    :all-lessons-completed="allLessonsCompleted"
-                    @start-lesson="startLesson"
-                    @start-test="startTest"
-                />
+                <LessonPath :lessons="category.lessons" :tests="category.tests" :completed-lessons="completedLessons"
+                    :all-lessons-completed="allLessonsCompleted" @start-lesson="startLesson" @start-test="startTest" />
             </template>
         </div>
     </div>

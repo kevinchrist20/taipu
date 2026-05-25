@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { AVATARS, difficultyOptions, languageOptions } from '../types';
+import { ArrowLeft } from 'lucide-vue-next';
 import UserService from '../services/user.service';
 import useAlert from '../composables/useAlert';
 import router from '../router';
@@ -43,9 +44,7 @@ function createAccount() {
     <header class="flex items-center justify-between px-5 py-2.5 border-b border-border bg-background/90 backdrop-blur-sm sticky top-0 z-40">
       <AppLogo size="sm" />
       <AppButton variant="ghost" size="sm" @click="router.back()">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5M12 5l-7 7 7 7" />
-        </svg>
+        <ArrowLeft class="w-3.5 h-3.5" />
         Back to selection
       </AppButton>
     </header>
