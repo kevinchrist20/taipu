@@ -154,9 +154,11 @@ onUnmounted(() => {
 
 <template>
     <!-- Loading State -->
-    <div v-if="lessonLoading || !activeLesson" class="flex flex-1 min-h-0 justify-center items-center bg-background text-foreground overflow-hidden">
+    <div v-if="lessonLoading || !activeLesson"
+        class="flex flex-1 min-h-0 justify-center items-center bg-background text-foreground overflow-hidden">
         <div class="text-center">
-            <div class="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4"></div>
+            <div class="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4">
+            </div>
             <p class="text-muted-foreground">Loading lesson...</p>
         </div>
     </div>
@@ -173,18 +175,16 @@ onUnmounted(() => {
                     </div>
                     <div class="flex space-x-3">
                         <!-- Pause/Resume Button -->
-                        <AppButton @click="togglePause" 
+                        <AppButton @click="togglePause"
                             :disabled="currentPosition === 0 || lessonCompleted || showStatsModal"
-                            :variant="showPauseModal ? 'secondary' : 'ghost'"
-                            class="p-2.5 transition-all duration-200">
+                            :variant="showPauseModal ? 'secondary' : 'ghost'" class="p-2.5 transition-all duration-200">
                             <Pause v-if="!showPauseModal" :size="24" />
                             <Play v-else :size="24" />
                         </AppButton>
 
                         <!-- Exit Button -->
                         <AppButton @click="confirmExit"
-                            :disabled="currentPosition === 0 || lessonCompleted || showStatsModal"
-                            variant="danger"
+                            :disabled="currentPosition === 0 || lessonCompleted || showStatsModal" variant="danger"
                             class="p-2.5 transition-all duration-200">
                             <OctagonX :size="24" />
                         </AppButton>
@@ -213,7 +213,7 @@ onUnmounted(() => {
                 <PauseModal :show="showPauseModal" @resume="resumeLesson" @exit="confirmExit" @close="resumeLesson" />
 
                 <ExitConfirmModal :show="showExitModal" :has-progress="currentPosition > 0 && !lessonCompleted"
-                    @confirm="handleExitConfirm" @close="closeExitModal" />
+                    @confirm="handleExitConfirm" @cancel="closeExitModal" />
 
                 <!-- Keyboard Area -->
                 <footer class="border-t border-border p-4 shrink-0">
@@ -237,7 +237,14 @@ onUnmounted(() => {
 }
 
 @keyframes bounce-in {
-    0% { transform: scale(0.97); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(0.97);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 </style>

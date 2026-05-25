@@ -125,7 +125,8 @@ function getStatColor(value: number, required: number) {
                 </div>
 
                 <!-- Help Text -->
-                <div v-if="!passed" class="mt-4 text-xs text-muted-foreground bg-surface rounded-xl p-3 border border-border text-left flex items-start gap-2">
+                <div v-if="!passed"
+                    class="mt-4 text-xs text-muted-foreground bg-surface rounded-xl p-3 border border-border text-left flex items-start gap-2">
                     <InfoIcon :size="16" class="text-primary mt-0.5" />
                     Meet both accuracy and WPM requirements to unlock the next lesson
                 </div>

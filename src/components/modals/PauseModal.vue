@@ -19,7 +19,8 @@ const emit = defineEmits<{
     <Modal :show="show" size="md" :close-on-escape="false">
         <div class="text-center">
             <div class="mb-6">
-                <div class="w-16 h-16 border border-primary/25 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <div
+                    class="w-16 h-16 border border-primary/25 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <CirclePause class="h-8 w-8 text-primary" />
                 </div>
                 <h3 class="text-2xl font-bold text-foreground mb-2 font-display">Lesson Paused</h3>
