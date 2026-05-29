@@ -95,7 +95,14 @@ async function completeLesson() {
     if (!passedLesson.value || !activeLesson || !user) return;
 
     try {
-        await LessonService.completeLesson(user.id, activeLesson.value!.id);
+        await LessonService.completeLesson(
+            user.id,
+            activeLesson.value!.id,
+            rateInfo.wpm.value,
+            rateInfo.accuracy.value,
+            grade.value,
+            secondsElapsed.value
+        );
         markCompleted();
         closeStatsModal();
         returnToLessons();

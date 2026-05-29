@@ -9,8 +9,22 @@ export default {
         return lessons;
     },
 
-    async completeLesson(userId: number, lessonId: number): Promise<void> {
-        await invoke('complete_lesson', { userId, lessonId });
+    async completeLesson(
+        userId: number,
+        lessonId: number,
+        wpm: number,
+        accuracy: number,
+        grade: string,
+        durationSeconds: number
+    ): Promise<void> {
+        await invoke('complete_lesson', {
+            userId,
+            lessonId,
+            wpm,
+            accuracy,
+            grade,
+            durationSeconds
+        });
     },
 
     async getCompletedLessons(userId: number): Promise<number[]> {
