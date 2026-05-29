@@ -109,31 +109,38 @@ Note: Multi-difficulty functionality is implemented, but intermediate/advanced b
 ### High Priority
 
 1. Curriculum expansion for depth
+    - Intermediate and advanced tracks need more categories and variety
+    - Add broader drills for numbers, symbols, capitalization, mixed text
 
-- Intermediate and advanced tracks need more categories and variety
-- Add broader drills for numbers, symbols, capitalization, mixed text
+2. Quality and reliability coverage
 
-1. Quality and reliability coverage
+    - Automated tests remain light (unit + integration + E2E needed)
+    - Core user flows should be covered in CI
 
-- Automated tests remain light (unit + integration + E2E needed)
-- Core user flows should be covered in CI
+3. UX consistency and polish
 
-1. UX consistency and polish
-
-- Standardize loading/error empty states across all views
-- Tighten edge-case handling during async failures and route transitions
+    - Standardize loading/error empty states across all views
+    - Tighten edge-case handling during async failures and route transitions
 
 ### Medium Priority
 
 1. Keyboard layout variants
 
-- Keyboard rendering is still effectively a single layout
-- User-selectable layout behavior is not fully implemented
+    - Keyboard rendering is still effectively a single layout
+    - User-selectable layout behavior is not fully implemented
 
-1. Accessibility hardening
+2. Accessibility hardening
 
-- Improve keyboard-only navigation and ARIA semantics
-- Add stronger focus management and screen-reader checks
+    - Improve keyboard-only navigation and ARIA semantics
+    - Add stronger focus management and screen-reader checks
+
+3. Distribution channels (package managers/stores)
+
+    - Add Homebrew Cask publishing path for macOS
+    - Add Windows package manager path (Winget and/or Scoop)
+    - Add Linux distribution channel path (Flatpak first, then optional Snap/AUR)
+    - Keep GitHub Releases as source of truth for binaries, checksums, and notes
+    - Document ownership/maintenance responsibilities for each channel
 
 ---
 
@@ -142,13 +149,18 @@ Note: Multi-difficulty functionality is implemented, but intermediate/advanced b
 1. Expand intermediate and advanced lesson categories
 2. Add baseline automated tests for critical flows:
 
-- Create/select user
-- Complete lesson and record completion
-- Save settings and reload preferences
-- Validate dashboard/stat consistency
+    - Create/select user
+    - Complete lesson and record completion
+    - Save settings and reload preferences
+    - Validate dashboard/stat consistency
 
 3. Improve shared async state UX patterns (loading/error/empty)
 4. Begin accessibility audit pass on major screens
+5. Start package manager rollout (phased):
+
+- Phase A: Homebrew Cask (macOS)
+- Phase B: Winget/Scoop (Windows)
+- Phase C: Flatpak (Linux)
 
 ---
 
