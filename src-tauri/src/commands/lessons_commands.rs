@@ -14,8 +14,15 @@ pub fn get_lesson_tests(id: i32) -> Result<Vec<Lesson>, String> {
 }
 
 #[tauri::command]
-pub fn complete_lesson(user_id: i32, lesson_id: i32) -> Result<(), String> {
-    lesson_service::mark_lesson_completed(user_id, lesson_id)
+pub fn complete_lesson(
+    user_id: i32,
+    lesson_id: i32,
+    wpm: f64,
+    accuracy: f64,
+    grade: String,
+    duration_seconds: i32,
+) -> Result<(), String> {
+    lesson_service::mark_lesson_completed(user_id, lesson_id, wpm, accuracy, grade, duration_seconds)
 }
 
 #[tauri::command]

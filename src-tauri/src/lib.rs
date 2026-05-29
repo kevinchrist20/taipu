@@ -7,6 +7,7 @@ mod services;
 mod utils;
 
 use commands::lessons_commands;
+use commands::stats_commands;
 use commands::user_commands;
 use commands::utils_commands;
 use db::db_client;
@@ -50,7 +51,8 @@ pub fn run() {
             lessons_commands::get_completed_lessons,
             lessons_commands::get_lessons_by_categories,
             lessons_commands::get_category_tests,
-            lessons_commands::get_lesson_by_id
+            lessons_commands::get_lesson_by_id,
+            stats_commands::get_user_statistics
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,6 +1,19 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    completions (id) {
+        id -> Integer,
+        user_id -> Integer,
+        lesson_id -> Integer,
+        wpm -> Double,
+        accuracy -> Double,
+        grade -> Text,
+        duration_seconds -> Integer,
+        completed_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     lesson_items (id) {
         id -> Integer,
         title -> Text,
@@ -29,14 +42,7 @@ diesel::table! {
     }
 }
 
-diesel::table! {
-    user_completed_lessons (user_id, lesson_id) {
-        user_id -> Integer,
-        lesson_id -> Integer,
-    }
-}
+diesel::joinable!(completions -> lesson_items (lesson_id));
+diesel::joinable!(completions -> users (user_id));
 
-diesel::joinable!(user_completed_lessons -> lesson_items (lesson_id));
-diesel::joinable!(user_completed_lessons -> users (user_id));
-
-diesel::allow_tables_to_appear_in_same_query!(lesson_items, user_completed_lessons,);
+diesel::allow_tables_to_appear_in_same_query!(completions, lesson_items, users,);

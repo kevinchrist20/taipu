@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use crate::{
     db::{
         db_client::db_conn,
-        schema::{lesson_items::dsl as items, user_completed_lessons},
+        schema::{completions::dsl as completion_items, lesson_items::dsl as items},
     },
     models::{
+        completion::NewCompletion,
         lesson::{CategoryWithLessons, Lesson},
-        user_lesson::UserCompletedLesson,
     },
 };
 use diesel::prelude::*;
@@ -133,19 +133,34 @@ pub fn get_lessons_by_categories(
     Ok(result)
 }
 
-pub fn mark_lesson_completed(user_id: i32, lesson_id: i32) -> Result<(), String> {
+pub fn mark_lesson_completed(
+    user_id: i32,
+    lesson_id: i32,
+    wpm: f64,
+    accuracy: f64,
+    grade: String,
+    duration_seconds: i32,
+) -> Result<(), String> {
     let conn = &mut db_conn();
-    let new_completion = UserCompletedLesson { user_id, lesson_id };
+    let normalized_grade = grade.trim().to_uppercase();
+    let is_valid_grade = matches!(normalized_grade.as_str(), "S" | "A" | "B" | "C" | "D");
+    if !is_valid_grade {
+        return Err("Invalid grade. Expected one of S, A, B, C, D".to_string());
+    }
 
-    diesel::insert_into(user_completed_lessons::table)
+    let new_completion = NewCompletion {
+        user_id,
+        lesson_id,
+        wpm,
+        accuracy,
+        grade: normalized_grade,
+        duration_seconds,
+    };
+
+    diesel::insert_into(completion_items::completions)
         .values(&new_completion)
-        .on_conflict((
-            user_completed_lessons::user_id,
-            user_completed_lessons::lesson_id,
-        ))
-        .do_nothing()
         .execute(conn)
-        .map_err(|e| format!("Error marking lesson as completed: {:?}", e))?;
+        .map_err(|e| format!("Error recording completion: {:?}", e))?;
 
     Ok(())
 }
@@ -153,9 +168,10 @@ pub fn mark_lesson_completed(user_id: i32, lesson_id: i32) -> Result<(), String>
 pub fn get_completed_lessons(user_id: i32) -> Result<Vec<i32>, String> {
     let conn = &mut db_conn();
 
-    user_completed_lessons::table
-        .filter(user_completed_lessons::user_id.eq(user_id))
-        .select(user_completed_lessons::lesson_id)
+    completion_items::completions
+        .filter(completion_items::user_id.eq(user_id))
+        .select(completion_items::lesson_id)
+        .distinct()
         .load::<i32>(conn)
         .map_err(|e| format!("Error fetching completed lessons: {:?}", e))
 }
