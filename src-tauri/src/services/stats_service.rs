@@ -25,9 +25,11 @@ pub fn get_user_statistics(user_id: i32, difficulty: String) -> Result<UserStati
             COUNT(*) AS total_completions
         FROM completions
         WHERE user_id = ?
+          AND difficulty = ?
         ",
     )
     .bind::<Integer, _>(user_id)
+    .bind::<Text, _>(difficulty.as_str())
     .get_result::<OverviewRow>(conn)
     .map_err(|e| format!("Error loading statistics overview: {:?}", e))?;
 
@@ -35,10 +37,12 @@ pub fn get_user_statistics(user_id: i32, difficulty: String) -> Result<UserStati
         "
         SELECT COUNT(DISTINCT lesson_id) AS total_lessons_completed
         FROM completions
-        WHERE user_id = ?
+                WHERE user_id = ?
+                    AND difficulty = ?
         ",
     )
     .bind::<Integer, _>(user_id)
+    .bind::<Text, _>(difficulty.as_str())
     .get_result::<TotalCompletedRow>(conn)
     .map_err(|e| format!("Error loading completed lessons count: {:?}", e))?;
 
@@ -46,12 +50,14 @@ pub fn get_user_statistics(user_id: i32, difficulty: String) -> Result<UserStati
         "
         SELECT grade, COUNT(*) AS count
         FROM completions
-        WHERE user_id = ?
+                WHERE user_id = ?
+                    AND difficulty = ?
         GROUP BY grade
         ORDER BY grade ASC
         ",
     )
     .bind::<Integer, _>(user_id)
+    .bind::<Text, _>(difficulty.as_str())
     .load::<GradeDistributionRow>(conn)
     .map_err(|e| format!("Error loading grade distribution: {:?}", e))?;
 
@@ -83,7 +89,7 @@ pub fn get_user_statistics(user_id: i32, difficulty: String) -> Result<UserStati
         ",
     )
     .bind::<Integer, _>(user_id)
-    .bind::<Text, _>(difficulty)
+    .bind::<Text, _>(difficulty.as_str())
     .load::<CategoryProgressRow>(conn)
     .map_err(|e| format!("Error loading category progress: {:?}", e))?;
 
@@ -101,12 +107,14 @@ pub fn get_user_statistics(user_id: i32, difficulty: String) -> Result<UserStati
             strftime('%Y-%m-%dT%H:%M:%SZ', c.completed_at) AS completed_at
         FROM completions c
         INNER JOIN lesson_items li ON li.id = c.lesson_id
-        WHERE c.user_id = ?
+                WHERE c.user_id = ?
+                    AND c.difficulty = ?
         ORDER BY c.completed_at DESC
         LIMIT 10
         ",
     )
     .bind::<Integer, _>(user_id)
+    .bind::<Text, _>(difficulty.as_str())
     .load::<RecentCompletionRow>(conn)
     .map_err(|e| format!("Error loading recent activity: {:?}", e))?;
 
