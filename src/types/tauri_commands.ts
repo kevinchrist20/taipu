@@ -51,14 +51,6 @@ export type TauriCommands = {
     exit_app: {
         returns: void,
         args: undefined
-    },
-    get_app_theme: {
-        returns: string,
-        args: undefined
-    },
-    set_app_theme: {
-        returns: void,
-        args: { theme: string }
     }
 };
 

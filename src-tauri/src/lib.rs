@@ -17,6 +17,7 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             db_client::init_db();
@@ -43,8 +44,6 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             utils_commands::exit_app,
-            utils_commands::get_app_theme,
-            utils_commands::set_app_theme,
             user_commands::get_all_users,
             user_commands::add_user,
             user_commands::update_user_preferences,

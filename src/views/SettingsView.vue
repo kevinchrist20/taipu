@@ -141,7 +141,6 @@ onMounted(loadSettings);
             <section class="rounded-2xl border border-border bg-card p-6 space-y-5">
                 <div>
                     <h2 class="text-xl font-semibold text-foreground">Appearance</h2>
-                    <p class="text-sm text-muted-foreground mt-1">Theme is stored in settings.ini.</p>
                 </div>
 
                 <div>
