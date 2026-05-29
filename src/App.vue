@@ -3,15 +3,26 @@ import { RouterView, useRoute } from 'vue-router';
 import Alert from './components/alert/index.vue'
 import Header from './components/Header.vue';
 import UtilService from './services/util.service';
+import SettingsService from './services/settings.service';
 import { onMounted, computed } from 'vue';
 import { routes } from './constants';
 import { SessionStore } from './storage';
 
+function applyTheme(theme: string) {
+  const normalized = theme.toUpperCase();
+  SessionStore.setTheme(normalized);
+  document.documentElement.classList.toggle('dark', normalized === 'DARK');
+}
+
 onMounted(() => {
   UtilService.checkForUpdates();
-  // Apply saved theme on app start
-  const isDark = SessionStore.theme === 'DARK';
-  document.documentElement.classList.toggle('dark', isDark);
+
+  SettingsService.getAppTheme()
+    .then((theme) => applyTheme(theme))
+    .catch((error) => {
+      console.error('Failed to load theme settings:', error);
+      applyTheme('LIGHT');
+    });
 });
 
 const route = useRoute();

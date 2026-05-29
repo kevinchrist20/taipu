@@ -1,5 +1,5 @@
 export * from './UserStatistics'
+export * from './User'
+export * from './CategoryWithLessons'
 export * from './Lesson'
 export * from './NewUser'
-export * from './CategoryWithLessons'
-export * from './User'

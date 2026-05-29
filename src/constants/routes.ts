@@ -5,4 +5,5 @@ export const routes = {
     categoryLessons: "/lessons/:category",
     lessonArea: "/lesson/:id",
     stats: "/stats",
+    settings: "/settings",
 };

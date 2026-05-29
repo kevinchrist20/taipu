@@ -1,20 +1,28 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { LayoutDashboard, BarChart2, LogOut, Sun, Moon } from 'lucide-vue-next';
+import { LayoutDashboard, BarChart2, LogOut, Sun, Moon, Settings } from 'lucide-vue-next';
 import { useRouter, useRoute } from 'vue-router';
 import AppLogo from './AppLogo.vue';
 import { SessionStore } from '../storage';
 import { avatarEmoji } from '../types';
 import { routes } from '../constants';
 import AppButton from './AppButton.vue';
+import SettingsService from '../services/settings.service';
 
 const router = useRouter();
 const route = useRoute();
 const user = computed(() => SessionStore.user);
 const isDark = computed(() => SessionStore.theme === 'DARK');
 
-function toggleTheme() {
+async function toggleTheme() {
   const next = isDark.value ? 'LIGHT' : 'DARK';
+
+  try {
+    await SettingsService.setAppTheme(next);
+  } catch (error) {
+    console.error('Failed to save theme settings:', error);
+  }
+
   SessionStore.setTheme(next);
   document.documentElement.classList.toggle('dark', next === 'DARK');
 }
@@ -50,13 +58,18 @@ function isActive(path: string) {
       </AppButton>
 
       <!-- User pill (Profile) -->
-      <AppButton variant="ghost" size="sm" @click="router.push({})">
+      <AppButton variant="ghost" size="sm" @click="router.push({ path: routes.settings })">
         <span class="text-sm leading-none">{{ user ? avatarEmoji(user.avatar) : '👤' }}</span>
         <span class="text-sm font-medium text-foreground capitalize">{{ user?.name }}</span>
       </AppButton>
 
       <!-- Divider -->
       <div class="w-px h-5 bg-border mx-1" />
+
+      <AppButton size="sm" @click="router.push({ path: routes.settings })"
+        :variant="isActive(routes.settings) ? 'primary' : 'secondary'">
+        <Settings :size="14" />
+      </AppButton>
 
       <!-- Theme toggle -->
       <AppButton @click="toggleTheme" variant="secondary" size="sm"
