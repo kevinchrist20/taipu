@@ -28,13 +28,20 @@ CREATE TABLE lesson_items (
     FOREIGN KEY (parent_lesson_id) REFERENCES lesson_items (id)
 );
 
-CREATE TABLE user_completed_lessons (
+CREATE TABLE completions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     lesson_id INTEGER NOT NULL,
-    PRIMARY KEY (user_id, lesson_id),
+    wpm REAL NOT NULL,
+    accuracy REAL NOT NULL,
+    grade TEXT NOT NULL,
+    duration_seconds INTEGER NOT NULL,
+    completed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (lesson_id) REFERENCES lesson_items (id) ON DELETE CASCADE
 );
+
+CREATE UNIQUE INDEX completions_pkey ON completions (id);
 
 INSERT INTO lesson_items (id, title, content, difficulty, language, category, is_test, parent_lesson_id, passing_wpm, accuracy_threshold)
 VALUES
