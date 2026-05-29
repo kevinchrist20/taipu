@@ -14,6 +14,8 @@ import useRateInfo from '../composables/useRateInfo';
 import useLessonProgress from '../composables/useLessonProgress';
 import useModalState from '../composables/useModalState';
 import useKeyboardHandler from '../composables/useKeyboardHandler';
+import useCompletedLessons from '../composables/useCompletedLessons';
+import useCategories from '../composables/useCategories';
 import { OctagonX, Pause, Play } from 'lucide-vue-next';
 import CompletionModal from '../components/modals/CompletionModal.vue';
 import PauseModal from '../components/modals/PauseModal.vue';
@@ -33,6 +35,8 @@ const { currentPosition, typedText, nextKey, handleKeyInput, resetTyping } = use
 
 const lessonContent = computed(() => activeLesson.value?.content || '');
 const rateInfo = useRateInfo({ typedText, currentPosition, secondsElapsed, lessonContent });
+const { refreshCompletedLessons } = useCompletedLessons();
+const { fetchCategories } = useCategories();
 
 const {
     lessonCompleted,
@@ -104,6 +108,20 @@ async function completeLesson() {
             secondsElapsed.value
         );
         markCompleted();
+
+        const refreshResults = await Promise.allSettled([
+            refreshCompletedLessons(),
+            fetchCategories(true)
+        ]);
+
+        const [completedLessonsRefresh, categoriesRefresh] = refreshResults;
+        if (completedLessonsRefresh.status === 'rejected' || categoriesRefresh.status === 'rejected') {
+            console.warn('Lesson completion succeeded, but some caches failed to refresh.', {
+                completedLessonsRefresh,
+                categoriesRefresh
+            });
+        }
+
         closeStatsModal();
         returnToLessons();
     } catch (error) {

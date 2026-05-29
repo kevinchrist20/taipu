@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { InfoIcon } from 'lucide-vue-next';
 import Modal from './Modal.vue';
+import AppButton from '../AppButton.vue';
 
 interface Props {
     show: boolean;

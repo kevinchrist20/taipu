@@ -10,6 +10,7 @@ const categoriesCache = ref<CategoryWithLessons[]>([]);
 const loading = ref(false);
 const lastFetchTime = ref<number | null>(null);
 const cachedUserId = ref<number | null>(null);
+const cachedDifficulty = ref<string | null>(null);
 
 // Cache duration: 5 minutes
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -31,24 +32,27 @@ export default function useCategories() {
         throw new Error('User not found in session');
       }
 
-      const userChanged = cachedUserId.value !== user.id;
-      if (userChanged) {
+      const currentDifficulty = user.lessonDifficulty || '';
+
+      const cacheKeyChanged = cachedUserId.value !== user.id || cachedDifficulty.value !== currentDifficulty;
+      if (cacheKeyChanged) {
         categoriesCache.value = [];
         lastFetchTime.value = null;
       }
 
-      if (!forceRefresh && !userChanged && isDataFresh.value && categoriesCache.value.length > 0) {
+      if (!forceRefresh && !cacheKeyChanged && isDataFresh.value && categoriesCache.value.length > 0) {
         return categoriesCache.value;
       }
 
       const fetchedCategories = await LessonService.getLessonsByCategories(
-        user.lessonDifficulty || '',
+        currentDifficulty,
         user.id
       );
       
       categoriesCache.value = fetchedCategories;
       lastFetchTime.value = Date.now();
       cachedUserId.value = user.id;
+      cachedDifficulty.value = currentDifficulty;
       
       return fetchedCategories;
     } catch (error) {
@@ -67,6 +71,7 @@ export default function useCategories() {
     categoriesCache.value = [];
     lastFetchTime.value = null;
     cachedUserId.value = null;
+    cachedDifficulty.value = null;
   };
 
   const getCategoryByName = (categoryName: string) => {
