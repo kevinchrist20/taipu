@@ -15,6 +15,7 @@ on:
 permissions:
   contents: write
   packages: write
+  pull-requests: write
 
 jobs:
   prepare-version:
@@ -57,23 +58,34 @@ jobs:
           mv src-tauri/Cargo.toml.tmp src-tauri/Cargo.toml
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-      - name: Commit and push version bump
+      - name: Commit version bump and open PR
+        id: create-pr
+        uses: peter-evans/create-pull-request@v7
         env:
           VERSION: ${{ inputs.version }}
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml
-          if git diff --cached --quiet; then
-            echo "No version file changes detected."
-          else
-            git commit -m "chore(release): bump version to $VERSION"
-            git push origin HEAD:master
-          fi
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: master
+          branch: release/version-${{ inputs.version }}
+          delete-branch: false
+          title: "chore(release): bump version to ${{ inputs.version }}"
+          commit-message: "chore(release): bump version to ${{ inputs.version }}"
+          body: |
+            Automated version bump created by release workflow.
+
+            Version: `${{ inputs.version }}`
+          add-paths: |
+            package.json
+            src-tauri/tauri.conf.json
+            src-tauri/Cargo.toml
       - name: Capture release commit sha
         id: capture-sha
         run: |
-          echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          if [ -n "${{ steps.create-pr.outputs.pull-request-head-sha }}" ]; then
+            echo "commit_sha=${{ steps.create-pr.outputs.pull-request-head-sha }}" >> $GITHUB_OUTPUT
+          else
+            echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          fi
 
   create-tag:
     needs: prepare-version
