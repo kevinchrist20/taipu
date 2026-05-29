@@ -2,6 +2,7 @@ import { ref, computed } from 'vue';
 import LessonService from '../services/lesson.service';
 import { SessionStore } from '../storage';
 import { CategoryWithLessons } from '../types/bindings';
+import { formatCategoryName } from '../utils/ui-formatters';
 import useAlert from './useAlert';
 
 // Global state for categories (shared across components)
@@ -60,13 +61,6 @@ export default function useCategories() {
     } finally {
       loading.value = false;
     }
-  };
-
-  const formatCategoryName = (categoryName: string) => {
-    return categoryName
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
   };
 
   const clearCache = () => {

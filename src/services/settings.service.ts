@@ -1,15 +1,11 @@
 import { load } from '@tauri-apps/plugin-store';
+import { normalizeTheme } from '../utils/ui-formatters';
 
 const STORE_FILE = 'settings.json';
 const THEME_KEY = 'theme';
 const DEFAULT_THEME = 'LIGHT';
 
 let storePromise: ReturnType<typeof load> | null = null;
-
-function normalizeTheme(theme: string): string {
-    const value = theme.trim().toUpperCase();
-    return value === 'DARK' ? 'DARK' : 'LIGHT';
-}
 
 async function getStore() {
     if (!storePromise) {

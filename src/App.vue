@@ -7,9 +7,10 @@ import SettingsService from './services/settings.service';
 import { onMounted, computed } from 'vue';
 import { routes } from './constants';
 import { SessionStore } from './storage';
+import { normalizeTheme } from './utils/ui-formatters';
 
 function applyTheme(theme: string) {
-  const normalized = theme.toUpperCase();
+  const normalized = normalizeTheme(theme);
   SessionStore.setTheme(normalized);
   document.documentElement.classList.toggle('dark', normalized === 'DARK');
 }

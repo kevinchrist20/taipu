@@ -7,8 +7,29 @@ import router from '../router';
 import { SessionStore } from '../storage';
 import { routes } from '../constants';
 import AppLogo from '../components/AppLogo.vue';
+import AppButton from '../components/AppButton.vue';
+import ErrorState from '../components/ErrorState.vue';
+import EmptyState from '../components/EmptyState.vue';
+import LoadingState from '../components/LoadingState.vue';
+import { extractErrorMessage } from '../utils/error-utils';
 
 const users = ref<User[]>([]);
+const loading = ref(false);
+const errorMessage = ref('');
+
+async function loadUsers() {
+  loading.value = true;
+  errorMessage.value = '';
+
+  try {
+    users.value = await UserService.getUsers();
+  } catch (error) {
+    errorMessage.value = extractErrorMessage(error, 'Unable to load profiles right now.');
+    console.error('Error loading users:', error);
+  } finally {
+    loading.value = false;
+  }
+}
 
 function getAvatar(user: User): string {
   return avatarEmoji(user.avatar);
@@ -19,13 +40,7 @@ function selectUser(user: User) {
   router.push({ path: routes.lessons });
 }
 
-onMounted(async () => {
-  try {
-    users.value = await UserService.getUsers();
-  } catch (error) {
-    console.error(error);
-  }
-});
+onMounted(loadUsers);
 </script>
 
 <template>
@@ -38,8 +53,21 @@ onMounted(async () => {
       </p>
     </div>
 
+    <LoadingState v-if="loading" message="Loading profiles..." min-height-class="h-56" />
+
+    <ErrorState v-else-if="errorMessage" :message="errorMessage" retry-label="Try again" @retry="loadUsers" class="w-full max-w-xl" />
+
+    <EmptyState
+      v-else-if="!users.length"
+      title="No profiles yet"
+      description="Create your first profile to start practicing."
+      class="w-full max-w-xl"
+    >
+      <AppButton @click="router.push({ path: routes.createAccount })">Create profile</AppButton>
+    </EmptyState>
+
     <!-- Profile Cards -->
-    <div class="flex flex-wrap gap-4 justify-center max-w-xl">
+    <div v-else class="flex flex-wrap gap-4 justify-center max-w-xl">
       <button
         v-for="user in users"
         :key="user.id"

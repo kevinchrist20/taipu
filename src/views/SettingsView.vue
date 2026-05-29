@@ -8,6 +8,8 @@ import { difficultyOptions, languageOptions, themeOptions } from '../types';
 import useAlert from '../composables/useAlert';
 import UserService from '../services/user.service';
 import SettingsService from '../services/settings.service';
+import { extractErrorMessage } from '../utils/error-utils';
+import { normalizeTheme } from '../utils/ui-formatters';
 
 const saving = ref(false);
 const loadingTheme = ref(false);
@@ -18,7 +20,7 @@ const theme = ref('LIGHT');
 const user = computed(() => SessionStore.user);
 
 function applyTheme(themeValue: string) {
-    const normalized = themeValue.toUpperCase();
+    const normalized = normalizeTheme(themeValue);
     SessionStore.setTheme(normalized);
     document.documentElement.classList.toggle('dark', normalized === 'DARK');
 }
@@ -54,13 +56,38 @@ async function saveSettings() {
     saving.value = true;
 
     try {
-        const [updatedUser] = await Promise.all([
+        const [profileResult, themeResult] = await Promise.allSettled([
             UserService.updateUserPreferences(user.value.id, language.value, lessonDifficulty.value),
-            SettingsService.setAppTheme(theme.value),
+            SettingsService.setAppTheme(normalizeTheme(theme.value)),
         ]);
 
-        SessionStore.setUser(updatedUser);
-        applyTheme(theme.value);
+        if (profileResult.status === 'fulfilled') {
+            SessionStore.setUser(profileResult.value);
+        }
+
+        if (themeResult.status === 'fulfilled') {
+            applyTheme(theme.value);
+        }
+
+        if (profileResult.status === 'rejected' && themeResult.status === 'rejected') {
+            throw new Error('Unable to save both profile and theme settings.');
+        }
+
+        if (profileResult.status === 'rejected') {
+            useAlert().setAlert({
+                type: 'warning',
+                message: 'Theme saved, but profile preferences could not be updated.',
+            });
+            return;
+        }
+
+        if (themeResult.status === 'rejected') {
+            useAlert().setAlert({
+                type: 'warning',
+                message: 'Profile settings saved, but theme could not be persisted.',
+            });
+            return;
+        }
 
         useAlert().setAlert({
             type: 'success',
@@ -70,7 +97,7 @@ async function saveSettings() {
         console.error('Error saving settings:', error);
         useAlert().setAlert({
             type: 'danger',
-            message: 'Unable to save settings. Please try again.',
+            message: extractErrorMessage(error, 'Unable to save settings. Please try again.'),
         });
     } finally {
         saving.value = false;

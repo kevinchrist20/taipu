@@ -2,6 +2,9 @@
 import { onMounted, computed, ref } from 'vue';
 import { Zap, Target, TrendingUp, Clock } from 'lucide-vue-next';
 import CategoryCard from '../components/CategoryCard.vue';
+import LoadingState from '../components/LoadingState.vue';
+import ErrorState from '../components/ErrorState.vue';
+import EmptyState from '../components/EmptyState.vue';
 import router from '../router';
 import { SessionStore } from '../storage';
 import { CategoryWithLessons, User, UserStatistics } from '../types/bindings';
@@ -9,6 +12,8 @@ import useCategories from '../composables/useCategories';
 import useCompletedLessons from '../composables/useCompletedLessons';
 import useCategoryProgress from '../composables/useCategoryProgress';
 import StatsService from '../services/stats.service';
+import { extractErrorMessage } from '../utils/error-utils';
+import { formatDurationShort } from '../utils/ui-formatters';
 
 const {
   categories,
@@ -28,24 +33,14 @@ const { getCategoryProgress } = useCategoryProgress(completedLessons);
 
 const user = computed<User | null>(() => SessionStore.user);
 const loading = computed(() => categoriesLoading.value || completedLessonsLoading.value);
+const categoriesError = ref('');
 
 const statsLoading = ref(false);
 const statsError = ref('');
 const dashboardStats = ref<UserStatistics | null>(null);
 
 function formatTimeSpent(totalSeconds: number): string {
-  if (totalSeconds < 60) {
-    return `${totalSeconds}s`;
-  }
-
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-
-  if (hours === 0) {
-    return `${minutes}m`;
-  }
-
-  return `${hours}h ${minutes}m`;
+  return formatDurationShort(totalSeconds);
 }
 
 const stats = computed(() => {
@@ -82,10 +77,24 @@ function getCategoryDifficulty(category: CategoryWithLessons): string {
 
 async function fetchData() {
   if (!user.value) return;
-  try {
-    await Promise.all([fetchCategories(), fetchCompletedLessons(), loadDashboardStats()]);
-  } catch (error) {
-    console.error('Error fetching data:', error);
+
+  categoriesError.value = '';
+  const [categoriesResult, completedResult, statsResult] = await Promise.allSettled([
+    fetchCategories(),
+    fetchCompletedLessons(),
+    loadDashboardStats()
+  ]);
+
+  if (categoriesResult.status === 'rejected' || completedResult.status === 'rejected') {
+    const reason = categoriesResult.status === 'rejected'
+      ? categoriesResult.reason
+      : (completedResult as PromiseRejectedResult).reason;
+    categoriesError.value = extractErrorMessage(reason, 'Unable to load lesson categories right now.');
+    console.error('Error loading categories/completions:', reason);
+  }
+
+  if (statsResult.status === 'rejected') {
+    console.error('Error loading dashboard stats:', statsResult.reason);
   }
 }
 
@@ -120,10 +129,14 @@ onMounted(fetchData);
       <!-- Section Heading -->
       <h2 class="text-xl font-bold font-mono text-foreground mb-5">Lesson Categories</h2>
 
-      <!-- Loading -->
-      <div v-if="loading" class="flex justify-center items-center h-48">
-        <div class="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-      </div>
+      <LoadingState v-if="loading" message="Loading lesson categories..." min-height-class="h-48" />
+
+      <ErrorState
+        v-else-if="categoriesError"
+        :message="categoriesError"
+        retry-label="Retry"
+        @retry="fetchData"
+      />
 
       <!-- Category Grid -->
       <div v-else-if="categories.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -134,10 +147,7 @@ onMounted(fetchData);
           @click="selectCategory(category)" />
       </div>
 
-      <!-- Empty -->
-      <div v-else class="text-center py-16">
-        <p class="text-muted-foreground">No lessons available.</p>
-      </div>
+      <EmptyState v-else title="No lessons available" description="No categories are currently available for this profile." />
     </div>
   </div>
 </template>

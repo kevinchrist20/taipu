@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { SessionStore } from '../storage';
 import router from '../router';
 import { routes } from '../constants';
 import StatsService from '../services/stats.service';
 import type { UserStatistics } from '../types/bindings';
+import LoadingState from '../components/LoadingState.vue';
+import ErrorState from '../components/ErrorState.vue';
+import { extractErrorMessage } from '../utils/error-utils';
+import { formatAccuracy, formatCategoryName, formatDurationShort, formatRelativeTime } from '../utils/ui-formatters';
 
 const loading = ref(false);
 const errorMessage = ref('');
+let disposed = false;
 
 const stats = ref<UserStatistics>({
     avgWpm: 0,
@@ -32,20 +37,7 @@ const totalGradeCount = computed(() =>
     stats.value.gradeDistribution.reduce((sum, item) => sum + item.count, 0)
 );
 
-const formattedTimeTyped = computed(() => {
-    const totalSeconds = stats.value.totalTimeSeconds;
-    if (totalSeconds < 60) {
-        return `${totalSeconds}s`;
-    }
-
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    if (hours === 0) {
-        return `${minutes}m`;
-    }
-
-    return `${hours}h ${minutes}m`;
-});
+const formattedTimeTyped = computed(() => formatDurationShort(stats.value.totalTimeSeconds));
 
 const totalLessonsInTrack = computed(() =>
     stats.value.categoryProgress.reduce((sum, item) => sum + item.totalLessons, 0)
@@ -54,29 +46,6 @@ const totalLessonsInTrack = computed(() =>
 const totalCompletedInTrack = computed(() =>
     stats.value.categoryProgress.reduce((sum, item) => sum + item.completedLessons, 0)
 );
-
-function formatCategoryName(categoryName: string): string {
-    return categoryName
-        .split('-')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-}
-
-function formatAccuracy(value: number): string {
-    return `${Math.round(value)}%`;
-}
-
-function formatCompletedAt(isoDate: string): string {
-    const diffMs = Date.now() - new Date(isoDate).getTime();
-    const diffMinutes = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMinutes / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMinutes < 1) return 'just now';
-    if (diffMinutes < 60) return `${diffMinutes}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return `${diffDays}d ago`;
-}
 
 function gradeColor(grade: string): string {
     switch (grade) {
@@ -100,7 +69,7 @@ function gradeBarWidth(count: number): number {
 
 async function loadStats() {
     if (!user.value) {
-        router.push({ path: routes.home });
+        await router.push({ path: routes.home });
         return;
     }
 
@@ -108,16 +77,27 @@ async function loadStats() {
     errorMessage.value = '';
 
     try {
-        stats.value = await StatsService.getUserStatistics(user.value.id, user.value.lessonDifficulty || 'BEGINNER');
+        const result = await StatsService.getUserStatistics(user.value.id, user.value.lessonDifficulty || 'BEGINNER');
+
+        if (disposed) {
+            return;
+        }
+
+        stats.value = result;
     } catch (error) {
         console.error('Error loading user statistics:', error);
-        errorMessage.value = 'Unable to load statistics right now.';
+        errorMessage.value = extractErrorMessage(error, 'Unable to load statistics right now.');
     } finally {
-        loading.value = false;
+        if (!disposed) {
+            loading.value = false;
+        }
     }
 }
 
 onMounted(loadStats);
+onUnmounted(() => {
+    disposed = true;
+});
 </script>
 
 <template>
@@ -129,13 +109,9 @@ onMounted(loadStats);
                 <p class="text-muted-foreground mt-2">Everything stored locally on this device. Train more to fill these in.</p>
             </div>
 
-            <div v-if="loading" class="flex justify-center items-center h-56">
-                <div class="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-            </div>
+            <LoadingState v-if="loading" size="lg" min-height-class="h-56" message="Loading your statistics..." />
 
-            <div v-else-if="errorMessage" class="rounded-2xl border border-destructive/30 bg-destructive/10 p-6 text-destructive">
-                {{ errorMessage }}
-            </div>
+            <ErrorState v-else-if="errorMessage" :message="errorMessage" retry-label="Retry" @retry="loadStats" />
 
             <div v-else class="space-y-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -217,7 +193,7 @@ onMounted(loadStats);
                                 <span class="px-2.5 py-1 rounded-md text-xs border font-bold" :class="gradeColor(item.grade)">
                                     {{ item.grade }}
                                 </span>
-                                <span class="text-muted-foreground text-xs">{{ formatCompletedAt(item.completedAt) }}</span>
+                                <span class="text-muted-foreground text-xs">{{ formatRelativeTime(item.completedAt) }}</span>
                             </div>
                         </div>
                     </div>

@@ -8,6 +8,7 @@ import { avatarEmoji } from '../types';
 import { routes } from '../constants';
 import AppButton from './AppButton.vue';
 import SettingsService from '../services/settings.service';
+import { normalizeTheme } from '../utils/ui-formatters';
 
 const router = useRouter();
 const route = useRoute();
@@ -15,7 +16,7 @@ const user = computed(() => SessionStore.user);
 const isDark = computed(() => SessionStore.theme === 'DARK');
 
 async function toggleTheme() {
-  const next = isDark.value ? 'LIGHT' : 'DARK';
+  const next = normalizeTheme(isDark.value ? 'LIGHT' : 'DARK');
 
   try {
     await SettingsService.setAppTheme(next);

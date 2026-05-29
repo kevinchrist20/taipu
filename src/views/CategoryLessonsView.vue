@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, onUnmounted, computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ArrowLeft } from 'lucide-vue-next';
 import LessonPath from '../components/LessonPath.vue';
@@ -8,12 +8,18 @@ import { SessionStore } from '../storage';
 import { Lesson, User } from '../types/bindings';
 import useCategories from '../composables/useCategories';
 import useCompletedLessons from '../composables/useCompletedLessons';
-import useCategoryProgress from '../composables/useCategoryProgress';
 import AppButton from '../components/AppButton.vue';
+import LoadingState from '../components/LoadingState.vue';
+import ErrorState from '../components/ErrorState.vue';
+import EmptyState from '../components/EmptyState.vue';
+import { extractErrorMessage } from '../utils/error-utils';
 
 const route = useRoute();
 const router = useRouter();
 const categoryName = route.params.category as string;
+let disposed = false;
+const loadError = ref('');
+const categoryMissing = ref(false);
 
 const {
     getCategoryByName,
@@ -29,33 +35,45 @@ const {
     loading: completedLessonsLoading
 } = useCompletedLessons();
 
-const {
-    getCategoryProgress: _getCategoryProgress,
-} = useCategoryProgress(completedLessons);
-
 const user = computed<User | null>(() => SessionStore.user);
 const category = computed(() => getCategoryByName(categoryName));
 const loading = computed(() => categoriesLoading.value || completedLessonsLoading.value);
 
 async function fetchCategoryData() {
+    loadError.value = '';
+    categoryMissing.value = false;
+
     if (!user.value) {
-        router.push({ path: routes.home });
+        await router.push({ path: routes.home });
         return;
     }
 
-    try {
-        await Promise.all([
-            fetchCategories(),
-            fetchCompletedLessons()
-        ]);
+    const results = await Promise.allSettled([
+        fetchCategories(),
+        fetchCompletedLessons()
+    ]);
 
-        if (!category.value) {
-            router.push({ path: routes.lessons });
-            return;
-        }
+    if (disposed) {
+        return;
+    }
+
+    const failed = results.find(result => result.status === 'rejected');
+    if (failed && failed.status === 'rejected') {
+        console.error('Error fetching category data:', failed.reason);
+        loadError.value = extractErrorMessage(failed.reason, 'Unable to load category details right now.');
+        return;
+    }
+
+    if (!category.value) {
+        categoryMissing.value = true;
+    }
+}
+
+async function goBackToLessons() {
+    try {
+        await router.push({ path: routes.lessons });
     } catch (error) {
-        console.error('Error fetching category data:', error);
-        router.push({ path: routes.lessons });
+        console.error('Navigation error:', error);
     }
 }
 
@@ -83,24 +101,30 @@ function difficultyStyle(d: string) {
 onMounted(async () => {
     await fetchCategoryData();
 });
+
+onUnmounted(() => {
+    disposed = true;
+});
 </script>
 
 <template>
     <div class="min-h-screen bg-background px-6 py-6">
         <div class="max-w-2xl mx-auto">
             <!-- Loading -->
-            <div v-if="loading" class="flex justify-center items-center h-64">
-                <div class="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-            </div>
+            <LoadingState v-if="loading" message="Loading category..." min-height-class="h-64" />
+
+            <ErrorState v-else-if="loadError" :message="loadError" retry-label="Retry" @retry="fetchCategoryData" />
 
             <!-- Not found -->
-            <div v-else-if="!category" class="text-center py-16">
-                <div class="text-6xl mb-4">❓</div>
-                <h3 class="text-xl font-bold text-muted-foreground mb-2">Category Not Found</h3>
-                <p class="text-muted-foreground text-sm">The requested category could not be found.</p>
-            </div>
+            <EmptyState
+                v-else-if="categoryMissing"
+                title="Category Not Found"
+                description="The requested category could not be found for your current track."
+            >
+                <AppButton variant="secondary" size="sm" @click="goBackToLessons">Back to lessons</AppButton>
+            </EmptyState>
 
-            <template v-else>
+            <template v-else-if="category">
                 <!-- Back link -->
                 <AppButton variant="ghost" size="sm" @click="router.back()" class="mb-6">
                     <ArrowLeft class="w-3.5 h-3.5" />

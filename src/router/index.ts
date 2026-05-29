@@ -6,6 +6,7 @@ import CreateAccountView from "../views/CreateAccountView.vue";
 import LessonsView from "../views/LessonsView.vue";
 import CategoryLessonsView from "../views/CategoryLessonsView.vue";
 import { routes } from "../constants";
+import { SessionStore } from "../storage";
 
 const router = createRouter({
     history: createWebHistory(),
@@ -46,6 +47,18 @@ const router = createRouter({
             component: () => import("../views/SettingsView.vue")
         }
     ]
+});
+
+router.beforeEach((to) => {
+    const protectedPaths = [routes.lessons, routes.stats, routes.settings];
+    const requiresAuth = protectedPaths.some(path => to.path === path || to.path.startsWith(`${path}/`))
+        || to.path.startsWith('/lesson/');
+
+    if (requiresAuth && !SessionStore.user) {
+        return { path: routes.home };
+    }
+
+    return true;
 });
 
 export default router;
