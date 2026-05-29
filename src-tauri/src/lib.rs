@@ -43,8 +43,11 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             utils_commands::exit_app,
+            utils_commands::get_app_theme,
+            utils_commands::set_app_theme,
             user_commands::get_all_users,
             user_commands::add_user,
+            user_commands::update_user_preferences,
             lessons_commands::get_lessons_by_difficulty,
             lessons_commands::get_lesson_tests,
             lessons_commands::complete_lesson,
