@@ -4,8 +4,9 @@ import HomeView from "../views/HomeView.vue";
 import LessonAreaView from "../views/LessonAreaView.vue";
 import CreateAccountView from "../views/CreateAccountView.vue";
 import LessonsView from "../views/LessonsView.vue";
+import CategoryLessonsView from "../views/CategoryLessonsView.vue";
 import { routes } from "../constants";
-import { useLessonStore } from "../storage";
+import { SessionStore } from "../storage";
 
 const router = createRouter({
     history: createWebHistory(),
@@ -26,19 +27,38 @@ const router = createRouter({
             component: LessonsView
         },
         {
+            path: routes.categoryLessons,
+            name: 'Category Lessons',
+            component: CategoryLessonsView
+        },
+        {
             path: routes.lessonArea,
             name: 'Lesson Area',
-            component: LessonAreaView,
-            beforeEnter: (_, __, next) => {
-                const lessonStore = useLessonStore();
-                if (lessonStore.currentLesson) {
-                    next();
-                } else {
-                    next({ path: routes.lessons });
-                }
-            }
+            component: LessonAreaView
         },
+        {
+            path: routes.stats,
+            name: 'Stats',
+            component: () => import("../views/StatsView.vue")
+        },
+        {
+            path: routes.settings,
+            name: 'Settings',
+            component: () => import("../views/SettingsView.vue")
+        }
     ]
+});
+
+router.beforeEach((to) => {
+    const protectedPaths = [routes.lessons, routes.stats, routes.settings];
+    const requiresAuth = protectedPaths.some(path => to.path === path || to.path.startsWith(`${path}/`))
+        || to.path.startsWith('/lesson/');
+
+    if (requiresAuth && !SessionStore.user) {
+        return { path: routes.home };
+    }
+
+    return true;
 });
 
 export default router;

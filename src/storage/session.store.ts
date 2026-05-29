@@ -4,7 +4,7 @@ import { User } from "../types/bindings";
 
 export const SessionStore = reactive({
     user: StorageService.get<User>("user") || null,
-    theme: StorageService.get<string>("theme") ?? "LIGHT",
+  theme: "LIGHT",
   
     setUser(user: User) {
       this.user = user;
@@ -13,7 +13,17 @@ export const SessionStore = reactive({
   
     setTheme(theme: string) {
       this.theme = theme;
-      StorageService.set("theme", theme);
+    },
+
+    setUserPreferences(language: string, lessonDifficulty: string) {
+      if (!this.user) return;
+
+      this.user = {
+        ...this.user,
+        language,
+        lessonDifficulty,
+      };
+      StorageService.set("user", this.user);
     },
   
     clearUser() {
@@ -23,7 +33,6 @@ export const SessionStore = reactive({
   
     clearTheme() {
       this.theme = "LIGHT";
-      StorageService.set("theme", "LIGHT");
     },
   
     clearAll() {

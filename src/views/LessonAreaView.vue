@@ -1,359 +1,249 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router';
 import Rate from '../components/Rate.vue';
-import { SessionStore, useLessonStore } from '../storage';
+import { SessionStore } from '../storage';
 import Keyboard from '../components/Keyboard.vue';
 import LessonService from '../services/lesson.service';
-import router from '../router';
 import { routes } from '../constants';
-import { difficultyRequirements } from '../types';
+import useLesson from '../composables/useLesson';
+import useAlert from '../composables/useAlert';
+import useTimer from '../composables/useTimer';
+import useTypingState from '../composables/useTypingState';
+import useRateInfo from '../composables/useRateInfo';
+import useLessonProgress from '../composables/useLessonProgress';
+import useModalState from '../composables/useModalState';
+import useKeyboardHandler from '../composables/useKeyboardHandler';
+import useCompletedLessons from '../composables/useCompletedLessons';
+import useCategories from '../composables/useCategories';
+import { OctagonX, Pause, Play } from 'lucide-vue-next';
+import CompletionModal from '../components/modals/CompletionModal.vue';
+import PauseModal from '../components/modals/PauseModal.vue';
+import ExitConfirmModal from '../components/modals/ExitConfirmModal.vue';
+import TypingArea from '../components/TypingArea.vue';
+import AppButton from '../components/AppButton.vue';
 
-const lessonStore = useLessonStore()
-const activeLesson = lessonStore.currentLesson;
+const route = useRoute();
+const router = useRouter();
+const lessonId = Number.parseInt(route.params.id as string);
 const user = SessionStore.user;
 
-const currentPosition = ref(0);
-const typedText = ref('');
-const nextKey = computed(() => activeLesson?.content[currentPosition.value])
-const secondsElapsed = ref(0);
-const timerRunning = ref(false);
-const lessonCompleted = ref(false);
-const showStatsModal = ref(false);
-const isPaused = ref(false);
-const grade = ref('');
-const userLessonRequirements = ref({ accuracy: 0, wpm: 0 });
+// Composables
+const { currentLesson: activeLesson, fetchLesson, loading: lessonLoading } = useLesson();
+const { secondsElapsed, formattedTime, timerRunning, startTimer, stopTimer, resetTimer, cleanup } = useTimer();
+const { currentPosition, typedText, nextKey, handleKeyInput, resetTyping } = useTypingState();
 
-let timerInterval: number | undefined
+const lessonContent = computed(() => activeLesson.value?.content || '');
+const rateInfo = useRateInfo({ typedText, currentPosition, secondsElapsed, lessonContent });
+const { refreshCompletedLessons } = useCompletedLessons();
+const { fetchCategories } = useCategories();
 
-const rateInfo = reactive({
-    timer: ref('00:00'),
-    percentComplete: computed(() => Math.round((typedText.value.length / (activeLesson?.content.length || 0)) * 100)),
-    accuracy: computed(() => {
-        const correctChars = typedText.value.split('').filter((char, index) => char === activeLesson?.content[index]).length
-        return Math.round((correctChars / (currentPosition.value > 0 ? currentPosition.value : 1)) * 100) || 100
-    }),
-    wpm: computed(() => {
-        // Standard WPM calculation assumes 5 characters (including spaces) = 1 word
-        const charCount = typedText.value.length;
-        const wordCount = charCount / 5;
-        const minutes = secondsElapsed.value / 60;
-        return minutes > 0 ? Math.round(wordCount / minutes) : 0
-    })
-})
+const {
+    lessonCompleted,
+    grade,
+    userRequirements,
+    passedLesson,
+    setGrade,
+    markCompleted,
+    reset: resetProgress
+} = useLessonProgress({
+    user,
+    accuracy: rateInfo.accuracy,
+    wpm: rateInfo.wpm
+});
 
-const passedLesson = computed(() => {
-    if (!user?.lessonDifficulty || !activeLesson) return false;
-
-    const requirements = difficultyRequirements[user.lessonDifficulty.toLowerCase()];
-    if (!requirements) return false;
-
-    return rateInfo.accuracy >= requirements.accuracy && rateInfo.wpm >= requirements.wpm;
-})
-
-function startTimer() {
-    if (!timerRunning.value) {
-        timerRunning.value = true
-        timerInterval = setInterval(() => {
-            secondsElapsed.value++
-            const minutes = Math.floor(secondsElapsed.value / 60)
-            const seconds = secondsElapsed.value % 60
-            rateInfo.timer = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-        }, 1000)
-    }
-}
-
-function stopTimer() {
-    if (timerRunning.value && timerInterval) {
-        clearInterval(timerInterval)
-        timerRunning.value = false
-    }
-}
+const {
+    showStatsModal,
+    showPauseModal,
+    showExitModal,
+    openStatsModal,
+    closeStatsModal,
+    openPauseModal,
+    closePauseModal,
+    openExitModal,
+    closeExitModal
+} = useModalState();
 
 function togglePause() {
     if (currentPosition.value === 0 || lessonCompleted.value || showStatsModal.value) return;
-
-    isPaused.value = !isPaused.value;
-
-    if (isPaused.value) {
-        stopTimer();
-    } else {
-        startTimer();
-    }
+    openPauseModal();
+    stopTimer();
 }
 
-// Handle key press
-function onKeyPress(key: string) {
-    if (lessonCompleted.value || showStatsModal.value || isPaused.value) return;
+function resumeLesson() {
+    closePauseModal();
+    startTimer();
+}
 
-    if (!timerRunning.value)
-        startTimer()
+function onKeyboardKeyPress(key: string) {
+    if (lessonCompleted.value || showStatsModal.value || showPauseModal.value || showExitModal.value) return;
 
-    if (key.length === 1) {
-        typedText.value += key
-        currentPosition.value++
-    }
-    else if (key === 'Backspace' && currentPosition.value > 0) {
-        typedText.value = typedText.value.slice(0, -1)
-        currentPosition.value--
-    }
-    else if (key === 'Space') {
-        typedText.value += ' '
-        currentPosition.value++
+    if (!timerRunning.value) {
+        startTimer();
     }
 
-    if (currentPosition.value >= (activeLesson?.content.length || 0)) {
-        stopTimer()
-        showCompletionStats()
+    const isCompleted = handleKeyInput(key, lessonContent.value);
+
+    if (isCompleted) {
+        stopTimer();
+        showCompletionStats();
     }
 }
 
 function showCompletionStats() {
-    showStatsModal.value = true;
-    grade.value = calculateGrade();
+    setGrade();
+    openStatsModal();
 }
 
 async function completeLesson() {
     if (!passedLesson.value || !activeLesson || !user) return;
 
     try {
-        await LessonService.completeLesson(user.id, activeLesson.id);
-        lessonCompleted.value = true;
-        showStatsModal.value = false;
+        await LessonService.completeLesson(
+            user.id,
+            activeLesson.value!.id,
+            rateInfo.wpm.value,
+            rateInfo.accuracy.value,
+            grade.value,
+            secondsElapsed.value
+        );
+        markCompleted();
+
+        const refreshResults = await Promise.allSettled([
+            refreshCompletedLessons(),
+            fetchCategories(true)
+        ]);
+
+        const [completedLessonsRefresh, categoriesRefresh] = refreshResults;
+        if (completedLessonsRefresh.status === 'rejected' || categoriesRefresh.status === 'rejected') {
+            console.warn('Lesson completion succeeded, but some caches failed to refresh.', {
+                completedLessonsRefresh,
+                categoriesRefresh
+            });
+        }
+
+        closeStatsModal();
         returnToLessons();
     } catch (error) {
         console.error("Error completing lesson:", error);
+        useAlert().setAlert({ message: 'Error completing lesson. Please try again.', type: 'danger' });
     }
 }
 
 function returnToLessons() {
-    router.replace({ path: routes.lessons });
+    router.back();
 }
 
 function retryLesson() {
-    // Reset stats and timer
-    showStatsModal.value = false;
-    typedText.value = '';
-    currentPosition.value = 0;
-    secondsElapsed.value = 0;
-    rateInfo.timer = '00:00';
-}
-
-function getDifficultyRequirements() {
-    if (!user?.lessonDifficulty) return { accuracy: 0, wpm: 0 };
-    userLessonRequirements.value = difficultyRequirements[user.lessonDifficulty.toLowerCase()] || { accuracy: 0, wpm: 0 };
-}
-
-function calculateGrade() {
-    const requirements = userLessonRequirements.value;
-
-    if (rateInfo.accuracy >= requirements.accuracy + 10 && rateInfo.wpm >= requirements.wpm + 10) return 'S';
-    if (rateInfo.accuracy >= requirements.accuracy + 5 && rateInfo.wpm >= requirements.wpm + 5) return 'A';
-    if (rateInfo.accuracy >= requirements.accuracy && rateInfo.wpm >= requirements.wpm) return 'B';
-    if (rateInfo.accuracy >= requirements.accuracy - 10 && rateInfo.wpm >= requirements.wpm - 5) return 'C';
-    return 'D';
+    closeStatsModal();
+    resetTyping();
+    resetTimer();
+    resetProgress();
 }
 
 function confirmExit() {
-    if (currentPosition.value > 0 && !lessonCompleted.value && !showStatsModal.value) {
-        if (confirm('Are you sure you want to exit this lesson? Your progress will be lost.')) {
-            returnToLessons();
-        }
-    } else {
-        returnToLessons();
-    }
+    openExitModal();
 }
 
-onMounted(() => {
-    getDifficultyRequirements();
+function handleExitConfirm() {
+    closeExitModal();
+    returnToLessons();
+}
 
-    // Add keyboard shortcuts for pause and exit
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            togglePause();
-        }
-    });
+// Setup keyboard handling
+useKeyboardHandler({
+    onTogglePause: togglePause,
+    onResume: resumeLesson,
+    showPauseModal,
+    showStatsModal,
+    showExitModal,
+    currentPosition
+});
+
+onMounted(async () => {
+    if (!lessonId || Number.isNaN(lessonId)) {
+        router.push({ path: routes.lessons });
+        return;
+    }
+
+    const lesson = await fetchLesson(lessonId);
+    if (!lesson) {
+        router.push({ path: routes.lessons });
+    }
+});
+
+onUnmounted(() => {
+    cleanup();
 });
 </script>
 
 <template>
-    <div class="flex flex-col h-screen bg-gray-800 text-white relative">
-        <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20">
-            <div class="flex-grow overflow-auto p-4 h-[40rem]">
+    <!-- Loading State -->
+    <div v-if="lessonLoading || !activeLesson"
+        class="flex flex-1 min-h-0 justify-center items-center bg-background text-foreground overflow-hidden">
+        <div class="text-center">
+            <div class="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4">
+            </div>
+            <p class="text-muted-foreground">Loading lesson...</p>
+        </div>
+    </div>
+
+    <!-- Lesson Content -->
+    <div v-else class="flex flex-1 min-h-0 flex-col bg-background text-foreground overflow-hidden">
+        <div class="grid grid-cols-1 gap-5 px-10 2xl:px-20 flex-1 min-h-0">
+            <div class="flex min-h-0 flex-col p-4">
                 <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center">
-                        <h2 class="text-2xl font-bold text-gray-300">
+                        <h2 class="text-2xl font-bold text-foreground font-mono">
                             {{ activeLesson?.title }}
                         </h2>
                     </div>
                     <div class="flex space-x-3">
                         <!-- Pause/Resume Button -->
-                        <button @click="togglePause"
-                            class="p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-transform hover:scale-110"
-                            :class="{ 'bg-green-600 hover:bg-green-700': isPaused }">
-                            <svg v-if="!isPaused" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </button>
+                        <AppButton @click="togglePause"
+                            :disabled="currentPosition === 0 || lessonCompleted || showStatsModal"
+                            :variant="showPauseModal ? 'secondary' : 'ghost'" class="p-2.5 transition-all duration-200">
+                            <Pause v-if="!showPauseModal" :size="24" />
+                            <Play v-else :size="24" />
+                        </AppButton>
 
                         <!-- Exit Button -->
-                        <button @click="confirmExit"
-                            class="p-2 rounded-full bg-red-600 hover:bg-red-700 text-white transition-transform hover:scale-110">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                        </button>
+                        <AppButton @click="confirmExit"
+                            :disabled="currentPosition === 0 || lessonCompleted || showStatsModal" variant="danger"
+                            class="p-2.5 transition-all duration-200">
+                            <OctagonX :size="24" />
+                        </AppButton>
                     </div>
                 </div>
 
-                <Rate :rate-info />
+                <Rate :rate-info="{
+                    timer: formattedTime,
+                    accuracy: rateInfo.accuracy.value,
+                    percentComplete: rateInfo.percentComplete.value,
+                    wpm: rateInfo.wpm.value
+                }" />
 
                 <!-- Main Content Area -->
-                <main class="flex-grow overflow-auto">
-                    <div class="bg-gray-700 rounded-lg p-6 text-4xl leading-relaxed shadow-md">
-                        <span v-for="(char, index) in activeLesson?.content" :key="index"
-                            class="transition-colors duration-150" :class="{
-                                'text-green-400': index < currentPosition && typedText[index] === char,
-                                'text-red-500': index < currentPosition && typedText[index] !== char,
-                                'bg-indigo-600 text-white': index === currentPosition,
-                                'text-gray-500': index > currentPosition,
-                            }">
-                            {{ char }}
-                        </span>
-                    </div>
+                <main class="flex-grow min-h-0 overflow-auto pb-4">
+                    <TypingArea :content="lessonContent" :current-position="currentPosition" :typed-text="typedText" />
                 </main>
 
-                <!-- Completion Stats Modal -->
-                <div v-if="showStatsModal"
-                    class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-80 z-20">
-                    <div class="bg-gray-800 border-2 border-indigo-500 rounded-lg shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all"
-                        :class="{
-                            'border-green-500': grade === 'S' || grade === 'A',
-                            'border-blue-500': grade === 'B',
-                            'border-yellow-500': grade === 'C',
-                            'border-red-500': grade === 'D'
-                        }">
-                        <div class="text-center">
-                            <h2 class="text-3xl font-bold mb-2 text-white">
-                                {{ passedLesson ? '🎉 Lesson Completed!' : '😩 Almost There!' }}
-                            </h2>
+                <!-- Modals -->
+                <CompletionModal :show="showStatsModal" :grade="grade" :accuracy="rateInfo.accuracy.value"
+                    :wpm="rateInfo.wpm.value" :timer="formattedTime" :current-position="currentPosition"
+                    :total-characters="activeLesson?.content.length || 0" :required-accuracy="userRequirements.accuracy"
+                    :required-wpm="userRequirements.wpm" :passed="passedLesson" @retry="retryLesson"
+                    @continue="completeLesson" @close="closeStatsModal" />
 
-                            <div class="mt-6 mb-8 flex flex-col items-center">
-                                <div class="text-5xl font-bold mb-2" :class="{
-                                    'text-green-400': grade === 'S' || grade === 'A',
-                                    'text-blue-400': grade === 'B',
-                                    'text-yellow-400': grade === 'C',
-                                    'text-red-400': grade === 'D'
-                                }">
-                                    Grade: {{ grade }}
-                                </div>
-                            </div>
+                <PauseModal :show="showPauseModal" @resume="resumeLesson" @exit="confirmExit" @close="resumeLesson" />
 
-                            <div class="grid grid-cols-2 gap-6 mb-8">
-                                <div class="bg-gray-700 p-4 rounded-lg">
-                                    <h3 class="text-gray-400 text-sm mb-1">Accuracy</h3>
-                                    <div class="text-2xl font-bold" :class="{
-                                        'text-green-400': rateInfo.accuracy >= userLessonRequirements.accuracy,
-                                        'text-red-400': rateInfo.accuracy < userLessonRequirements.accuracy
-                                    }">
-                                        {{ rateInfo.accuracy }}%
-                                    </div>
-                                    <div class="text-xs text-gray-400 mt-1">
-                                        Required: {{ userLessonRequirements.accuracy }}%
-                                    </div>
-                                </div>
-
-                                <div class="bg-gray-700 p-4 rounded-lg">
-                                    <h3 class="text-gray-400 text-sm mb-1">WPM</h3>
-                                    <div class="text-2xl font-bold" :class="{
-                                        'text-green-400': rateInfo.wpm >= userLessonRequirements.wpm,
-                                        'text-red-400': rateInfo.wpm < userLessonRequirements.wpm
-                                    }">
-                                        {{ rateInfo.wpm }}
-                                    </div>
-                                    <div class="text-xs text-gray-400 mt-1">
-                                        Required: {{ userLessonRequirements.wpm }}
-                                    </div>
-                                </div>
-
-                                <div class="bg-gray-700 p-4 rounded-lg">
-                                    <h3 class="text-gray-400 text-sm mb-1">Time</h3>
-                                    <div class="text-2xl font-bold text-blue-400">
-                                        {{ rateInfo.timer }}
-                                    </div>
-                                </div>
-
-                                <div class="bg-gray-700 p-4 rounded-lg">
-                                    <h3 class="text-gray-400 text-sm mb-1">Characters</h3>
-                                    <div class="text-2xl font-bold text-blue-400">
-                                        {{ currentPosition }} / {{ activeLesson?.content.length }}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex gap-4 justify-center">
-                                <button @click="retryLesson"
-                                    class="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-md transition transform hover:scale-105">
-                                    Retry
-                                </button>
-
-                                <button @click="passedLesson ? completeLesson() : null" :class="{
-                                    'px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-md transition transform hover:scale-105': passedLesson,
-                                    'px-6 py-3 bg-gray-600 text-gray-400 font-bold rounded-md cursor-not-allowed': !passedLesson
-                                }">
-                                    {{ passedLesson ? 'Continue' : 'Practice More' }}
-                                </button>
-                            </div>
-
-                            <div v-if="!passedLesson" class="mt-4 text-sm text-gray-400">
-                                Meet the required accuracy and WPM to continue to the next lesson.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pause Overlay -->
-                <div v-if="isPaused"
-                    class="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-80 rounded-lg">
-                    <div class="text-center p-8">
-                        <h3 class="text-3xl font-bold mb-4">Lesson Paused</h3>
-                        <p class="text-gray-300 mb-6">Click the button below to resume your lesson.</p>
-                        <button @click="togglePause"
-                            class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-md transition transform hover:scale-105 flex items-center justify-center mx-auto">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
-                                fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            Resume
-                        </button>
-                        <button @click="confirmExit"
-                            class="mt-4 px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-md transition transform hover:scale-105 flex items-center justify-center mx-auto">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
-                                fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4a1 1 0 10-2 0v4.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L14 11.586V7z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            Exit Lesson
-                        </button>
-                    </div>
-                </div>
+                <ExitConfirmModal :show="showExitModal" :has-progress="currentPosition > 0 && !lessonCompleted"
+                    @confirm="handleExitConfirm" @cancel="closeExitModal" />
 
                 <!-- Keyboard Area -->
-                <footer class="bg-gray-900 p-4 fixed bottom-0 left-0 w-full">
-                    <Keyboard :next="nextKey" :complete="rateInfo.percentComplete === 100" @key-pressed="onKeyPress" />
+                <footer class="border-t border-border p-4 shrink-0">
+                    <Keyboard :next="nextKey(lessonContent)" :complete="rateInfo.percentComplete.value === 100"
+                        @key-pressed="onKeyboardKeyPress" />
                 </footer>
             </div>
         </div>
@@ -367,44 +257,19 @@ onMounted(() => {
     white-space: pre-wrap;
 }
 
-.bg-indigo-600 {
-    background-color: #4F46E5;
-}
-
-.text-green-400 {
-    color: #4ADE80;
-}
-
-.text-red-500 {
-    color: #EF4444;
-    text-decoration: underline;
-}
-
-.text-gray-500 {
-    color: #6B7280;
-}
-
-.text-gray-300 {
-    color: #D1D5DB;
+.lesson-content-enter-active {
+    animation: bounce-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @keyframes bounce-in {
     0% {
-        transform: scale(0.8);
+        transform: scale(0.97);
         opacity: 0;
-    }
-
-    70% {
-        transform: scale(1.05);
     }
 
     100% {
         transform: scale(1);
         opacity: 1;
     }
-}
-
-.bg-gray-800 {
-    animation: bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 </style>

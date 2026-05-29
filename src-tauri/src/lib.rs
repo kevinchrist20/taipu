@@ -7,6 +7,7 @@ mod services;
 mod utils;
 
 use commands::lessons_commands;
+use commands::stats_commands;
 use commands::user_commands;
 use commands::utils_commands;
 use db::db_client;
@@ -16,6 +17,7 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             db_client::init_db();
@@ -44,10 +46,15 @@ pub fn run() {
             utils_commands::exit_app,
             user_commands::get_all_users,
             user_commands::add_user,
+            user_commands::update_user_preferences,
             lessons_commands::get_lessons_by_difficulty,
             lessons_commands::get_lesson_tests,
             lessons_commands::complete_lesson,
             lessons_commands::get_completed_lessons,
+            lessons_commands::get_lessons_by_categories,
+            lessons_commands::get_category_tests,
+            lessons_commands::get_lesson_by_id,
+            stats_commands::get_user_statistics
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

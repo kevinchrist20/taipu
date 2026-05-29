@@ -2,5 +2,8 @@ export const routes = {
     home: "/",
     createAccount: "/create-account",
     lessons: "/lessons",
-    lessonArea: "/lesson-area",
+    categoryLessons: "/lessons/:category",
+    lessonArea: "/lesson/:id",
+    stats: "/stats",
+    settings: "/settings",
 };

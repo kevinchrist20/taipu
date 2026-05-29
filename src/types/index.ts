@@ -13,3 +13,7 @@ export const difficultyRequirements: Record<string, DifficultyRequirement> = {
   intermediate: { accuracy: 85, wpm: 30 },
   advanced: { accuracy: 90, wpm: 40 }
 };
+
+export type CategoryStatus = 'locked' | 'unlocked' | 'completed';
+export type LessonStatus = 'not_started' | 'in_progress' | 'completed';
+export  type TestStatus = 'Passed' | 'Ready' | 'Locked';

@@ -1,118 +1,185 @@
 name: Release
 on:
-  push:
-    branches:
-      - master
-
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (without v prefix, e.g. 0.2.0)"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark GitHub release as prerelease"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
   packages: write
 
 jobs:
-  get-version:
+  prepare-version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.extract-version.outputs.version }}
+      version: ${{ steps.set-version.outputs.version }}
+      commit_sha: ${{ steps.capture-sha.outputs.commit_sha }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Extract version from tauri.conf.json
-        id: extract-version
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate version input
+        env:
+          VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(grep -o '"version": *"[^"]*"' src-tauri/tauri.conf.json | cut -d'"' -f4)
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
+      - name: Update version files
+        id: set-version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          node -e "const fs=require('fs');const v=process.env.VERSION;const p='package.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));j.version=v;fs.writeFileSync(p,JSON.stringify(j,null,2)+'\\n');"
+          node -e "const fs=require('fs');const v=process.env.VERSION;const p='src-tauri/tauri.conf.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));j.version=v;fs.writeFileSync(p,JSON.stringify(j,null,2)+'\\n');"
+          awk -v v="$VERSION" '
+            BEGIN { in_package=0; replaced=0 }
+            /^\[package\]/ { in_package=1; print; next }
+            /^\[/ && !/^\[package\]/ { in_package=0 }
+            {
+              if (in_package && !replaced && $1 == "version") {
+                print "version = \"" v "\""
+                replaced=1
+                next
+              }
+              print
+            }
+          ' src-tauri/Cargo.toml > src-tauri/Cargo.toml.tmp
+          mv src-tauri/Cargo.toml.tmp src-tauri/Cargo.toml
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Extracted version: $VERSION"
+      - name: Commit and push version bump
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml
+          if git diff --cached --quiet; then
+            echo "No version file changes detected."
+          else
+            git commit -m "chore(release): bump version to $VERSION"
+            git push origin HEAD:master
+          fi
+      - name: Capture release commit sha
+        id: capture-sha
+        run: |
+          echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
   create-tag:
-    needs: get-version
+    needs: prepare-version
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Create Tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=${{ needs.get-version.outputs.version }}
+          VERSION=${{ needs.prepare-version.outputs.version }}
+          TARGET_SHA=${{ needs.prepare-version.outputs.commit_sha }}
+
+          git fetch origin --tags
+
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists."
+            exit 1
+          fi
+
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git tag -a "v$VERSION" "$TARGET_SHA" -m "Release v$VERSION"
           git push origin "v$VERSION"
 
   create-release:
-    needs: [get-version, create-tag]
+    needs: [prepare-version, create-tag]
     runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create_release.outputs.id }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
         with:
-          node-version: 20
-      - name: Install conventional-changelog-cli
-        run: npm install -g conventional-changelog-cli
-      - name: Generate release notes
+          ref: v${{ needs.prepare-version.outputs.version }}
+      - name: Validate release notes
         run: |
-          conventional-changelog -p angular -r 0 -o latest_release_notes.txt
-          cat latest_release_notes.txt
-      - name: Read release notes
-        id: release_notes
-        run: |
-          echo "body<<EOF" >> $GITHUB_OUTPUT
-          cat latest_release_notes.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          test -f release_notes.md
+          test -s release_notes.md
+
+          # Require minimum structure
+          grep -Eq '^# .+' release_notes.md
+          grep -Eq '^## Highlights' release_notes.md
+
+          # Block common placeholders and template leftovers
+          if grep -Eqi 'TODO|TBD|lorem ipsum|your content here|insert .*here|placeholder|coming soon' release_notes.md; then
+            echo "release_notes.md still contains placeholder text."
+            exit 1
+          fi
+
+          # Ensure meaningful body length (excluding headings/blank lines)
+          CONTENT_LINES=$(grep -Evi '^(#|\s*$)' release_notes.md | wc -l | tr -d ' ')
+          if [ "$CONTENT_LINES" -lt 5 ]; then
+            echo "release_notes.md is too short. Add more substantive release details."
+            exit 1
+          fi
+
+          echo "Using release_notes.md as release body"
+          cat release_notes.md
       - name: Create Release
+        id: create_release
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: v${{ needs.get-version.outputs.version }}
-          name: Release v${{ needs.get-version.outputs.version }}
-          body: ${{ steps.release_notes.outputs.body }}
+          tag: v${{ needs.prepare-version.outputs.version }}
+          name: Release v${{ needs.prepare-version.outputs.version }}
+          bodyFile: release_notes.md
           draft: false
-          prerelease: true
-      # - name: Update CHANGELOG.md
-      #   run: |
-      #     cat latest_release_notes.txt >> CHANGELOG.md
-      #     git config user.name "GitHub Action"
-      #     git config user.email "action@github.com"
-      #     git add CHANGELOG.md
-      #     git commit -m "Update CHANGELOG.md for release v${{ needs.get-version.outputs.version }}"
-      #     git push origin HEAD:master
+          prerelease: ${{ inputs.prerelease }}
 
   build-tauri:
-    needs: [get-version, create-tag, create-release]
+    needs: [prepare-version, create-tag, create-release]
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest'
-            args: '--target x86_64-apple-darwin'
-          - platform: 'ubuntu-22.04'
-            args: ''
-          - platform: 'windows-latest'
-            args: ''
+          - platform: "macos-latest"
+            args: "--target aarch64-apple-darwin"
+          - platform: "macos-latest"
+            args: "--target x86_64-apple-darwin"
+          - platform: "ubuntu-22.04"
+            args: ""
+          - platform: "windows-latest"
+            args: ""
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-      
+        with:
+          ref: v${{ needs.prepare-version.outputs.version }}
+
       - run: npm i -g --force corepack && corepack enable
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: 'https://npm.pkg.github.com'
+          registry-url: "https://npm.pkg.github.com"
           cache: pnpm
-          cache-dependency-path: '**/pnpm-lock.yaml'
-          
+          cache-dependency-path: "**/pnpm-lock.yaml"
+
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
-        
+
       - name: Install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
@@ -121,7 +188,7 @@ jobs:
 
       - name: Install frontend dependencies
         run: pnpm install
-          
+
       - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0
         env:
@@ -129,6 +196,6 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: v${{ needs.get-version.outputs.version }}
-          releaseId: ${{ needs.create-release.outputs.id }}
+          tagName: v${{ needs.prepare-version.outputs.version }}
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.args }}

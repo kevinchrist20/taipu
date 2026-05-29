@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS completions;
+DROP TABLE IF EXISTS lesson_items;
+DROP TABLE IF EXISTS users;

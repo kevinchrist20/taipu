@@ -1,26 +1,32 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    lessons (id) {
+    completions (id) {
+        id -> Integer,
+        user_id -> Integer,
+        lesson_id -> Integer,
+        wpm -> Double,
+        accuracy -> Double,
+        grade -> Text,
+        duration_seconds -> Integer,
+        completed_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    lesson_items (id) {
         id -> Integer,
         title -> Text,
         content -> Text,
         difficulty -> Text,
         language -> Text,
+        category -> Text,
+        is_test -> Bool,
+        parent_lesson_id -> Nullable<Integer>,
+        passing_wpm -> Nullable<Integer>,
+        accuracy_threshold -> Nullable<Integer>,
         created_at -> Nullable<Timestamp>,
         updated_at -> Nullable<Timestamp>,
-    }
-}
-
-diesel::table! {
-    tests (id) {
-        id -> Integer,
-        lesson_id -> Integer,
-        title -> Text,
-        content -> Text,
-        passing_wpm -> Integer,
-        accuracy_threshold -> Integer,
-        created_at -> Nullable<Timestamp>,
     }
 }
 
@@ -28,27 +34,15 @@ diesel::table! {
     users (id) {
         id -> Integer,
         name -> Text,
-        username -> Text,
+        avatar -> Text,
+        language -> Text,
+        lesson_difficulty -> Text,
         created_at -> Nullable<Timestamp>,
         last_active -> Nullable<Timestamp>,
-        keyboard_type -> Nullable<Text>,
-        language -> Nullable<Text>,
-        theme -> Nullable<Text>,
-        lesson_difficulty -> Nullable<Text>,
     }
 }
 
-diesel::table! {
-    user_completed_lessons (user_id, lesson_id) {
-        user_id -> Integer,
-        lesson_id -> Integer,
-    }
-}
+diesel::joinable!(completions -> lesson_items (lesson_id));
+diesel::joinable!(completions -> users (user_id));
 
-diesel::joinable!(tests -> lessons (lesson_id));
-diesel::joinable!(user_completed_lessons -> lessons (lesson_id));
-diesel::joinable!(user_completed_lessons -> users (user_id));
-
-diesel::allow_tables_to_appear_in_same_query!(lessons, tests, users,);
-
-diesel::allow_tables_to_appear_in_same_query!(lessons, user_completed_lessons,);
+diesel::allow_tables_to_appear_in_same_query!(completions, lesson_items, users,);

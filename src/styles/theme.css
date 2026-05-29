@@ -1,0 +1,166 @@
+/* ─────────────────────────────────────────────────────────────
+   Taipu — Design Token System
+   Uses oklch where supported; hex fallbacks for older renderers.
+   Dark mode: .dark class on <html> / <body> (UnoCSS class strategy)
+───────────────────────────────────────────────────────────── */
+
+/* ── Base / Light ─────────────────────────────────────────── */
+:root {
+  /* Radius */
+  --radius: 0.75rem;
+
+  /* Backgrounds */
+  --background:       #f0f3f7;
+  --surface:          #e7ecf3;
+  --surface-elevated: #ffffff;
+
+  /* Cards / Popovers */
+  --card:             #ffffff;
+  --card-foreground:  #0f172a;
+  --popover:          #ffffff;
+  --popover-foreground: #0f172a;
+
+  /* Brand — Teal */
+  --primary:            #0d9488;
+  --primary-foreground: #ffffff;
+  --primary-glow:       rgba(13, 148, 136, 0.18);
+
+  /* Secondary */
+  --secondary:           #e7ecf3;
+  --secondary-foreground: #0f172a;
+
+  /* Muted */
+  --muted:            #e7ecf3;
+  --muted-foreground: #64748b;
+
+  /* Accent (informational blue) */
+  --accent:            #dbeafe;
+  --accent-foreground: #1e40af;
+
+  /* Semantic */
+  --destructive:            #ef4444;
+  --destructive-foreground: #ffffff;
+  --success:                #10b981;
+  --success-foreground:     #ffffff;
+  --warning:                #f59e0b;
+  --warning-foreground:     #ffffff;
+
+  /* Borders / Inputs */
+  --border: #dde3ed;
+  --input:  #dde3ed;
+  --ring:   #0d9488;
+
+  /* Foreground text */
+  --foreground: #0f172a;
+
+  /* Keyboard keys */
+  --key:            #ffffff;
+  --key-foreground: #0f172a;
+  --key-active:     #0d9488;
+
+  /* Shadows */
+  --shadow-sm:       0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md:       0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-elevated: 0 8px 32px rgba(15, 23, 42, 0.10), 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+/* ── Dark ─────────────────────────────────────────────────── */
+.dark {
+  /* Backgrounds */
+  --background:       #0d1117;
+  --surface:          #161b27;
+  --surface-elevated: #1e2637;
+
+  /* Cards / Popovers */
+  --card:               #181f2e;
+  --card-foreground:    #e2e8f0;
+  --popover:            #1e2637;
+  --popover-foreground: #e2e8f0;
+
+  /* Brand — Teal (slightly brighter on dark) */
+  --primary:            #14b8a6;
+  --primary-foreground: #0d1117;
+  --primary-glow:       rgba(20, 184, 166, 0.22);
+
+  /* Secondary */
+  --secondary:            #1e2637;
+  --secondary-foreground: #e2e8f0;
+
+  /* Muted */
+  --muted:            #1e2637;
+  --muted-foreground: #8b9ab3;
+
+  /* Accent */
+  --accent:            #1e3a5f;
+  --accent-foreground: #93c5fd;
+
+  /* Semantic */
+  --destructive:            #f87171;
+  --destructive-foreground: #0d1117;
+  --success:                #34d399;
+  --success-foreground:     #0d1117;
+  --warning:                #fbbf24;
+  --warning-foreground:     #0d1117;
+
+  /* Borders / Inputs */
+  --border: #253045;
+  --input:  #253045;
+  --ring:   #14b8a6;
+
+  /* Foreground text */
+  --foreground: #e2e8f0;
+
+  /* Keyboard keys */
+  --key:            #1e2637;
+  --key-foreground: #e2e8f0;
+  --key-active:     #14b8a6;
+
+  /* Shadows (stronger on dark — less ambient light bleed) */
+  --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-md:       0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Base resets ──────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI",
+    system-ui, ui-sans-serif, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Smooth theme transitions on key properties */
+* {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 0.15s;
+  transition-timing-function: ease;
+}
+
+/* But NOT on transforms, opacity, etc. (perf) */
+button, a, [role="button"] {
+  transition-property: background-color, border-color, color, box-shadow, transform, opacity;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}

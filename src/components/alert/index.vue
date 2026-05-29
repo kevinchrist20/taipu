@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { watch } from 'vue';
-import useAlert from '../../utils/useAlert';
+import useAlert from '../../composables/useAlert';
 
 const {
     alerts,

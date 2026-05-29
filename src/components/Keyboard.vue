@@ -42,39 +42,31 @@ function releaseButton() {
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', handlePhysicalKeyPress)
-  window.addEventListener('keyup', releaseButton)
+  globalThis.addEventListener('keydown', handlePhysicalKeyPress)
+  globalThis.addEventListener('keyup', releaseButton)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handlePhysicalKeyPress)
-  window.removeEventListener('keyup', releaseButton)
+  globalThis.removeEventListener('keydown', handlePhysicalKeyPress)
+  globalThis.removeEventListener('keyup', releaseButton)
 })
 </script>
 
 <template>
   <div class="flex flex-col space-y-2 w-full">
     <!-- Keyboard Rows -->
-    <div
-      v-for="(row, rowIndex) in keys"
-      :key="rowIndex"
-      class="key-row flex space-x-2"
-    >
+    <div v-for="(row, rowIndex) in keys" :key="rowIndex" class="key-row flex space-x-2">
       <!-- Individual Keys -->
-      <div
-        v-for="(key, keyIndex) in row"
-        :key="keyIndex"
+      <div v-for="(key, keyIndex) in row" :key="keyIndex"
         class="h-14 flex-grow min-w-0 px-2 py-2 text-xs sm:text-sm md:text-base lg:text-lg font-medium rounded-md text-center flex items-center justify-center transition-transform duration-150"
         :class="{
           'invisible': key.name === '',
           'grow flex-basis-25%': key.name === 'Space',
-          'bg-gray-700 text-white': key.type !== 'Special' && key.name !== nextKey,
-          'bg-indigo-600 text-white': key.name === nextKey || (key.name === 'Caps Lock' && isCapsLockActive),
-          'bg-gray-600 text-gray-300': key.type === 'Special',
-          'hover:bg-gray-600': key.type !== 'Special',
+          'bg-key text-key-foreground': key.type !== 'Special' && key.name !== nextKey,
+          'bg-primary text-primary-foreground shadow-md animate-bounce': key.name === nextKey || (key.name === 'Caps Lock' && isCapsLockActive),
+          'bg-surface text-muted-foreground': key.type === 'Special' && key.name !== nextKey && !(key.name === 'Caps Lock' && isCapsLockActive),
           'shadow-inner transform scale-95': key.name.toLowerCase() === activeKey,
-        }"
-      >
+        }">
         {{ key.name }}
       </div>
     </div>
