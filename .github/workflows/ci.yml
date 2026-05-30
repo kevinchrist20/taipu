@@ -23,6 +23,7 @@ jobs:
     outputs:
       version: ${{ steps.set-version.outputs.version }}
       commit_sha: ${{ steps.capture-sha.outputs.commit_sha }}
+      pr_number: ${{ steps.create-pr.outputs.pull-request-number }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -211,3 +212,48 @@ jobs:
           tagName: v${{ needs.prepare-version.outputs.version }}
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.args }}
+
+  cleanup-release-artifacts:
+    needs: [prepare-version, create-tag, create-release, build-tauri]
+    if: ${{ always() && (needs.create-tag.result != 'success' || needs.create-release.result != 'success' || needs.build-tauri.result != 'success') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete GitHub release
+        if: ${{ needs.create-release.outputs.release_id != '' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              await github.rest.repos.deleteRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: Number('${{ needs.create-release.outputs.release_id }}'),
+              })
+            } catch (error) {
+              core.warning(`Release cleanup skipped: ${error.message}`)
+            }
+
+      - name: Delete release tag
+        if: ${{ needs.create-tag.result == 'success' }}
+        run: |
+          git init
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git push origin ":refs/tags/v${{ needs.prepare-version.outputs.version }}" || true
+
+      - name: Close release pull request
+        if: ${{ needs.prepare-version.outputs.pr_number != '' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: Number('${{ needs.prepare-version.outputs.pr_number }}'),
+                state: 'closed',
+              })
+            } catch (error) {
+              core.warning(`PR cleanup skipped: ${error.message}`)
+            }

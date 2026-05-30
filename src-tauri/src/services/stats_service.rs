@@ -23,9 +23,10 @@ pub fn get_user_statistics(user_id: i32, difficulty: String) -> Result<UserStati
             COALESCE(MAX(wpm), 0.0) AS best_wpm,
             COALESCE(SUM(duration_seconds), 0) AS total_time_seconds,
             COUNT(*) AS total_completions
-        FROM completions
-        WHERE user_id = ?
-          AND difficulty = ?
+                FROM completions c
+                INNER JOIN lesson_items li ON li.id = c.lesson_id
+                WHERE c.user_id = ?
+                    AND li.difficulty = ?
         ",
     )
     .bind::<Integer, _>(user_id)
@@ -36,9 +37,10 @@ pub fn get_user_statistics(user_id: i32, difficulty: String) -> Result<UserStati
     let total_completed = sql_query(
         "
         SELECT COUNT(DISTINCT lesson_id) AS total_lessons_completed
-        FROM completions
-                WHERE user_id = ?
-                    AND difficulty = ?
+                FROM completions c
+                INNER JOIN lesson_items li ON li.id = c.lesson_id
+                WHERE c.user_id = ?
+                    AND li.difficulty = ?
         ",
     )
     .bind::<Integer, _>(user_id)
@@ -49,9 +51,10 @@ pub fn get_user_statistics(user_id: i32, difficulty: String) -> Result<UserStati
     let grade_distribution_rows = sql_query(
         "
         SELECT grade, COUNT(*) AS count
-        FROM completions
-                WHERE user_id = ?
-                    AND difficulty = ?
+                FROM completions c
+                INNER JOIN lesson_items li ON li.id = c.lesson_id
+                WHERE c.user_id = ?
+                    AND li.difficulty = ?
         GROUP BY grade
         ORDER BY grade ASC
         ",
@@ -108,7 +111,7 @@ pub fn get_user_statistics(user_id: i32, difficulty: String) -> Result<UserStati
         FROM completions c
         INNER JOIN lesson_items li ON li.id = c.lesson_id
                 WHERE c.user_id = ?
-                    AND c.difficulty = ?
+                    AND li.difficulty = ?
         ORDER BY c.completed_at DESC
         LIMIT 10
         ",
