@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project follows Semantic Versioning.
 
+## [0.3.0] - 2026-09-02
+
+### Added
+
+- Japanese Bonsai-inspired Growth Tree progression visual (`GrowthTree.vue`) with 5 evolution stages (Sprout, Sapling, Branching Bonsai, Verdant Canopy, Full Bloom).
+- Dynamic foliage density reacting to accuracy precision and floral blossoms reacting to practice streaks.
+- Interactive Speed & Accuracy Trend Chart (`StatsTrendChart.vue`) with 7D, 30D, and All-Time ranges and dual metric curves.
+- Daily consistency streak counter and 28-day (4-week) activity punchcard (`StreakCard.vue`).
+- Backend models and SQLite queries for time-series aggregation, streak tracking, and growth milestone computation.
+- TypeScript bindings for `DailyActivityStat`, `StreakInfo`, and `TreeStageInfo`.
+
+### Changed
+
+- Modernized Stats view with a high-impact hero section containing the growth tree, streak status, and live overview metrics.
+
+---
+
 ## [0.2.0] - 2026-05-29
 
 ### Added

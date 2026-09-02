@@ -1,7 +1,7 @@
 {
   "name": "taipu",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A modern typing trainer app that helps users improve their typing speed and accuracy through structured lessons and real-time performance tracking",
   "private": true,
   "scripts": {
