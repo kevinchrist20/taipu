@@ -7,6 +7,9 @@ import StatsService from '../services/stats.service';
 import type { UserStatistics } from '../types/bindings';
 import LoadingState from '../components/LoadingState.vue';
 import ErrorState from '../components/ErrorState.vue';
+import GrowthTree from '../components/GrowthTree.vue';
+import StatsTrendChart from '../components/StatsTrendChart.vue';
+import StreakCard from '../components/StreakCard.vue';
 import { extractErrorMessage } from '../utils/error-utils';
 import { formatAccuracy, formatCategoryName, formatDurationShort, formatRelativeTime } from '../utils/ui-formatters';
 
@@ -29,7 +32,23 @@ const stats = ref<UserStatistics>({
         { grade: 'D', count: 0 }
     ],
     categoryProgress: [],
-    recentActivity: []
+    recentActivity: [],
+    dailyTrends: [],
+    streakInfo: {
+        currentStreak: 0,
+        bestStreak: 0,
+        lastActiveDate: null
+    },
+    treeStage: {
+        stage: 1,
+        stageName: 'Sprout',
+        stageDescription: 'A tender green shoot taking root in the soil.',
+        progressPercentage: 0,
+        nextMilestoneHint: 'Complete lessons to grow into a Sapling',
+        foliageDensity: 0.5,
+        bloomCount: 0,
+        totalBranches: 3
+    }
 });
 
 const user = computed(() => SessionStore.user);
@@ -102,51 +121,99 @@ onUnmounted(() => {
 
 <template>
     <div class="min-h-full bg-background px-6 py-8">
-        <div class="max-w-7xl mx-auto">
-            <div class="mb-8">
-                <p class="text-xs tracking-[0.2em] uppercase text-muted-foreground font-medium">Performance</p>
-                <h1 class="text-4xl font-display font-bold text-foreground mt-2">Your stats</h1>
-                <p class="text-muted-foreground mt-2">Everything stored locally on this device. Train more to fill these in.</p>
+        <div class="max-w-7xl mx-auto space-y-8">
+            <!-- Title Header -->
+            <div>
+                <p class="text-xs tracking-[0.2em] uppercase text-muted-foreground font-medium">Performance & Mastery</p>
+                <h1 class="text-4xl font-display font-bold text-foreground mt-1">Your Stats & Growth</h1>
+                <p class="text-muted-foreground text-sm mt-1">Stored locally on this device. Train consistently to nurture your growth tree and unlock milestones.</p>
             </div>
 
             <LoadingState v-if="loading" size="lg" min-height-class="h-56" message="Loading your statistics..." />
 
             <ErrorState v-else-if="errorMessage" :message="errorMessage" retry-label="Retry" @retry="loadStats" />
 
-            <div v-else class="space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="rounded-2xl border border-border bg-card p-5">
-                        <p class="text-xs uppercase tracking-[0.16em] text-muted-foreground mb-3">Avg WPM</p>
-                        <p class="text-4xl font-bold font-mono text-primary">{{ Math.round(stats.avgWpm) }}</p>
+            <div v-else class="space-y-8">
+                <!-- HERO SECTION: Growth Tree + Consistency Streak & Quick Stats -->
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+                    <!-- Growth Tree Visual (3 columns on desktop) -->
+                    <div class="lg:col-span-3 flex">
+                        <GrowthTree
+                            :tree-stage="stats.treeStage"
+                            :accuracy="stats.avgAccuracy"
+                            :streak="stats.streakInfo.currentStreak"
+                            class="w-full"
+                        />
                     </div>
-                    <div class="rounded-2xl border border-border bg-card p-5">
-                        <p class="text-xs uppercase tracking-[0.16em] text-muted-foreground mb-3">Avg Accuracy</p>
-                        <p class="text-4xl font-bold font-mono text-foreground">{{ formatAccuracy(stats.avgAccuracy) }}</p>
-                    </div>
-                    <div class="rounded-2xl border border-border bg-card p-5">
-                        <p class="text-xs uppercase tracking-[0.16em] text-muted-foreground mb-3">Best WPM</p>
-                        <p class="text-4xl font-bold font-mono text-foreground">{{ Math.round(stats.bestWpm) }}</p>
-                    </div>
-                    <div class="rounded-2xl border border-border bg-card p-5">
-                        <p class="text-xs uppercase tracking-[0.16em] text-muted-foreground mb-3">Time Typed</p>
-                        <p class="text-4xl font-bold font-mono text-foreground">{{ formattedTimeTyped }}</p>
+
+                    <!-- Streak Card & Quick Metric Tiles (2 columns on desktop) -->
+                    <div class="lg:col-span-2 flex flex-col gap-5">
+                        <StreakCard
+                            :streak-info="stats.streakInfo"
+                            :daily-trends="stats.dailyTrends"
+                        />
+
+                        <!-- 2x2 Key Metric Grid -->
+                        <div class="grid grid-cols-2 gap-3 flex-1">
+                            <div class="rounded-2xl border border-border bg-card p-4 flex flex-col justify-between">
+                                <p class="text-xs uppercase tracking-[0.14em] text-muted-foreground font-medium">Avg Speed</p>
+                                <div class="mt-2">
+                                    <p class="text-3xl font-bold font-mono text-primary">{{ Math.round(stats.avgWpm) }}</p>
+                                    <span class="text-[11px] text-muted-foreground">words / min</span>
+                                </div>
+                            </div>
+                            <div class="rounded-2xl border border-border bg-card p-4 flex flex-col justify-between">
+                                <p class="text-xs uppercase tracking-[0.14em] text-muted-foreground font-medium">Avg Accuracy</p>
+                                <div class="mt-2">
+                                    <p class="text-3xl font-bold font-mono text-foreground">{{ formatAccuracy(stats.avgAccuracy) }}</p>
+                                    <span class="text-[11px] text-muted-foreground">precision rate</span>
+                                </div>
+                            </div>
+                            <div class="rounded-2xl border border-border bg-card p-4 flex flex-col justify-between">
+                                <p class="text-xs uppercase tracking-[0.14em] text-muted-foreground font-medium">Peak Speed</p>
+                                <div class="mt-2">
+                                    <p class="text-3xl font-bold font-mono text-foreground">{{ Math.round(stats.bestWpm) }}</p>
+                                    <span class="text-[11px] text-muted-foreground">personal best</span>
+                                </div>
+                            </div>
+                            <div class="rounded-2xl border border-border bg-card p-4 flex flex-col justify-between">
+                                <p class="text-xs uppercase tracking-[0.14em] text-muted-foreground font-medium">Time Typed</p>
+                                <div class="mt-2">
+                                    <p class="text-3xl font-bold font-mono text-foreground">{{ formattedTimeTyped }}</p>
+                                    <span class="text-[11px] text-muted-foreground">{{ stats.totalCompletions }} session{{ stats.totalCompletions === 1 ? '' : 's' }}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                    <section class="lg:col-span-2 rounded-2xl border border-border bg-card p-5">
-                        <h2 class="text-xl font-semibold text-foreground">Curriculum progress</h2>
-                        <p class="text-muted-foreground text-sm mt-1 mb-4">
-                            {{ totalCompletedInTrack }} of {{ totalLessonsInTrack }} lessons complete
-                        </p>
+                <!-- SPEED & ACCURACY TEMPORAL TREND CHART -->
+                <section>
+                    <StatsTrendChart :daily-trends="stats.dailyTrends" />
+                </section>
+
+                <!-- CURRICULUM PROGRESS & GRADE DISTRIBUTION -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <section class="lg:col-span-2 rounded-2xl border border-border bg-card p-6 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 class="text-xl font-semibold font-display text-foreground">Curriculum Progress</h2>
+                                <p class="text-muted-foreground text-xs mt-0.5">
+                                    {{ totalCompletedInTrack }} of {{ totalLessonsInTrack }} track lessons complete
+                                </p>
+                            </div>
+                            <span class="text-xs font-mono text-primary font-semibold">
+                                {{ totalLessonsInTrack ? Math.round((totalCompletedInTrack / totalLessonsInTrack) * 100) : 0 }}%
+                            </span>
+                        </div>
 
                         <div class="space-y-4">
                             <div v-for="item in stats.categoryProgress" :key="item.category">
-                                <div class="flex items-center justify-between text-sm mb-2">
-                                    <p class="text-foreground font-medium">{{ formatCategoryName(item.category) }}</p>
-                                    <p class="text-muted-foreground">{{ item.completedLessons }}/{{ item.totalLessons }}</p>
+                                <div class="flex items-center justify-between text-sm mb-1.5">
+                                    <p class="text-foreground font-medium text-xs">{{ formatCategoryName(item.category) }}</p>
+                                    <p class="text-muted-foreground font-mono text-xs">{{ item.completedLessons }}/{{ item.totalLessons }}</p>
                                 </div>
-                                <div class="h-2 rounded-full bg-surface">
+                                <div class="h-2 rounded-full bg-surface overflow-hidden">
                                     <div class="h-2 rounded-full bg-primary transition-all duration-300"
                                         :style="{ width: `${item.totalLessons ? (item.completedLessons / item.totalLessons) * 100 : 0}%` }" />
                                 </div>
@@ -154,43 +221,51 @@ onUnmounted(() => {
                         </div>
                     </section>
 
-                    <section class="rounded-2xl border border-border bg-card p-5">
-                        <h2 class="text-xl font-semibold text-foreground">Grade distribution</h2>
-                        <p class="text-muted-foreground text-sm mt-1 mb-4">Best per completion</p>
+                    <section class="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                        <h2 class="text-xl font-semibold font-display text-foreground">Grade Distribution</h2>
+                        <p class="text-muted-foreground text-xs mt-0.5 mb-4">Best per completion</p>
 
                         <div class="space-y-3">
                             <div v-for="item in stats.gradeDistribution" :key="item.grade" class="flex items-center gap-3">
-                                <span class="w-7 h-7 rounded-md border text-xs font-bold flex items-center justify-center"
+                                <span class="w-7 h-7 rounded-md border text-xs font-bold flex items-center justify-center font-mono"
                                     :class="gradeColor(item.grade)">
                                     {{ item.grade }}
                                 </span>
                                 <div class="h-2 rounded-full bg-surface flex-1 overflow-hidden">
                                     <div class="h-2 rounded-full bg-primary/80" :style="{ width: `${gradeBarWidth(item.count)}%` }" />
                                 </div>
-                                <span class="text-muted-foreground text-sm w-5 text-right">{{ item.count }}</span>
+                                <span class="text-muted-foreground text-xs font-mono w-6 text-right">{{ item.count }}</span>
                             </div>
                         </div>
                     </section>
                 </div>
 
-                <section class="rounded-2xl border border-border bg-card p-5">
-                    <h2 class="text-xl font-semibold text-foreground mb-4">Recent activity</h2>
+                <!-- RECENT ACTIVITY TIMELINE -->
+                <section class="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                    <h2 class="text-xl font-semibold font-display text-foreground mb-1">Recent Activity</h2>
+                    <p class="text-xs text-muted-foreground mb-4">Your most recent typing lessons and test results</p>
 
-                    <div v-if="!stats.recentActivity.length" class="text-muted-foreground text-sm py-6">
+                    <div v-if="!stats.recentActivity.length" class="text-muted-foreground text-sm py-8 text-center">
                         No completions yet. Finish a lesson to populate your timeline.
                     </div>
 
-                    <div v-else class="space-y-3">
+                    <div v-else class="space-y-2.5">
                         <div v-for="item in stats.recentActivity" :key="item.id"
-                            class="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 rounded-xl border border-border bg-surface-elevated p-4 items-center">
+                            class="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 rounded-xl border border-border/80 bg-surface/60 hover:bg-surface transition-colors p-3.5 items-center">
                             <div class="md:col-span-2">
-                                <p class="text-foreground font-medium">{{ item.lessonTitle }}</p>
-                                <p class="text-muted-foreground text-sm">{{ formatCategoryName(item.category) }}</p>
+                                <p class="text-foreground font-medium text-sm">{{ item.lessonTitle }}</p>
+                                <p class="text-muted-foreground text-xs">{{ formatCategoryName(item.category) }}</p>
                             </div>
-                            <p class="text-foreground text-sm font-mono">{{ Math.round(item.wpm) }} WPM</p>
-                            <p class="text-foreground text-sm font-mono">{{ Math.round(item.accuracy) }}%</p>
+                            <p class="text-foreground text-sm font-mono flex items-center gap-1">
+                                <span class="text-primary font-bold">{{ Math.round(item.wpm) }}</span>
+                                <span class="text-xs text-muted-foreground">WPM</span>
+                            </p>
+                            <p class="text-foreground text-sm font-mono flex items-center gap-1">
+                                <span class="font-bold">{{ Math.round(item.accuracy) }}%</span>
+                                <span class="text-xs text-muted-foreground">accuracy</span>
+                            </p>
                             <div class="flex items-center justify-between md:justify-end gap-3">
-                                <span class="px-2.5 py-1 rounded-md text-xs border font-bold" :class="gradeColor(item.grade)">
+                                <span class="px-2.5 py-0.5 rounded-md text-xs border font-bold font-mono" :class="gradeColor(item.grade)">
                                     {{ item.grade }}
                                 </span>
                                 <span class="text-muted-foreground text-xs">{{ formatRelativeTime(item.completedAt) }}</span>
