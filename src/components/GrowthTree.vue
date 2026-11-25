@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import type { TreeStageInfo } from '../types/bindings/TreeStageInfo';
-import { Sparkles, Info, EyeOff } from 'lucide-vue-next';
+import type { TreeStageInfo } from '../types/bindings/TreeStageInfo'
+import { EyeOff, Info, Sparkles } from '@lucide/vue'
+import { computed, ref } from 'vue'
 
 interface Props {
-  treeStage: TreeStageInfo;
-  accuracy?: number;
-  streak?: number;
+  treeStage: TreeStageInfo
+  accuracy?: number
+  streak?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   accuracy: 100,
   streak: 0,
-});
+})
 
 // Allow user to preview all stages if they want to see what's ahead
-const previewStage = ref<number | null>(null);
+const previewStage = ref<number | null>(null)
 
-const activeStage = computed(() => previewStage.value ?? props.treeStage.stage);
+const activeStage = computed(() => previewStage.value ?? props.treeStage.stage)
 
 const stageNames = [
   'Seedling Sprout',
@@ -25,49 +25,50 @@ const stageNames = [
   'Branching Bonsai',
   'Verdant Canopy',
   'Master Full Bloom',
-];
+]
 
 const stageTitles = computed(() => {
   if (previewStage.value !== null) {
     return {
       name: stageNames[previewStage.value - 1] || props.treeStage.stageName,
       desc: getStageDescription(previewStage.value),
-    };
+    }
   }
   return {
     name: props.treeStage.stageName,
     desc: props.treeStage.stageDescription,
-  };
-});
+  }
+})
 
 function getStageDescription(stage: number): string {
   switch (stage) {
     case 1:
-      return 'A tender shoot taking root in the soil. Practice consistently to help it grow sturdy.';
+      return 'A tender shoot taking root in the soil. Practice consistently to help it grow sturdy.'
     case 2:
-      return 'A resilient young sapling developing its main stem and first lateral branches.';
+      return 'A resilient young sapling developing its main stem and first lateral branches.'
     case 3:
-      return 'A defined bonsai with balanced branches. Keystroke rhythm and accuracy are taking shape.';
+      return 'A defined bonsai with balanced branches. Keystroke rhythm and accuracy are taking shape.'
     case 4:
-      return 'A flourishing canopy with dense foliage. Speed and precision are working in harmony.';
+      return 'A flourishing canopy with dense foliage. Speed and precision are working in harmony.'
     case 5:
-      return 'A majestic bonsai in full floral blossom. Fluid typing and daily discipline achieved.';
+      return 'A majestic bonsai in full floral blossom. Fluid typing and daily discipline achieved.'
     default:
-      return '';
+      return ''
   }
 }
 
 // Leaf cloud opacity and scale based on foliage density (accuracy)
 const foliageOpacity = computed(() => {
-  const density = props.treeStage.foliageDensity ?? 0.8;
-  return Math.min(1.0, Math.max(0.4, density));
-});
+  const density = props.treeStage.foliageDensity ?? 0.8
+  return Math.min(1.0, Math.max(0.4, density))
+})
 
 // Flower petal count tied to streak
 const displayedBlooms = computed(() => {
-  if (activeStage.value < 5) return 0;
-  return Math.max(3, Math.min(12, props.treeStage.bloomCount || 4));
-});
+  if (activeStage.value < 5)
+    return 0
+  return Math.max(3, Math.min(12, props.treeStage.bloomCount || 4))
+})
 </script>
 
 <template>
@@ -113,7 +114,7 @@ const displayedBlooms = computed(() => {
             :class="[
               activeStage === s
                 ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
-                : 'bg-surface/80 text-muted-foreground/70 hover:text-foreground hover:bg-surface'
+                : 'bg-surface/80 text-muted-foreground/70 hover:text-foreground hover:bg-surface',
             ]"
             :title="`Preview Stage ${s}: ${stageNames[s - 1]}`"
             @click="previewStage = s === props.treeStage.stage ? null : s"

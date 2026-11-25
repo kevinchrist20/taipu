@@ -1,40 +1,40 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import type { StreakInfo } from '../types/bindings/StreakInfo';
-import type { DailyActivityStat } from '../types/bindings/DailyActivityStat';
-import { Flame, Trophy, CalendarCheck } from 'lucide-vue-next';
+import type { DailyActivityStat } from '../types/bindings/DailyActivityStat'
+import type { StreakInfo } from '../types/bindings/StreakInfo'
+import { CalendarCheck, Flame, Trophy } from '@lucide/vue'
+import { computed } from 'vue'
 
 interface Props {
-  streakInfo: StreakInfo;
-  dailyTrends: DailyActivityStat[];
+  streakInfo: StreakInfo
+  dailyTrends: DailyActivityStat[]
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 // Generate the past 28 days (4 weeks) for the punchcard grid
 interface DaySlot {
-  dateStr: string;
-  dayOfMonth: number;
-  active: boolean;
-  completions: number;
-  isToday: boolean;
+  dateStr: string
+  dayOfMonth: number
+  active: boolean
+  completions: number
+  isToday: boolean
 }
 
 const recentDays = computed<DaySlot[]>(() => {
   const activeDatesMap = new Map<string, number>();
-  (props.dailyTrends || []).forEach(d => {
-    activeDatesMap.set(d.date, d.completionsCount);
-  });
+  (props.dailyTrends || []).forEach((d) => {
+    activeDatesMap.set(d.date, d.completionsCount)
+  })
 
-  const slots: DaySlot[] = [];
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const slots: DaySlot[] = []
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
   for (let i = 27; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(today.getDate() - i);
-    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const completions = activeDatesMap.get(dateStr) || 0;
+    const d = new Date()
+    d.setDate(today.getDate() - i)
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const completions = activeDatesMap.get(dateStr) || 0
 
     slots.push({
       dateStr,
@@ -42,16 +42,16 @@ const recentDays = computed<DaySlot[]>(() => {
       active: completions > 0,
       completions,
       isToday: dateStr === todayStr,
-    });
+    })
   }
 
-  return slots;
-});
+  return slots
+})
 
 const isTrainedToday = computed(() => {
-  const todaySlot = recentDays.value.find(d => d.isToday);
-  return Boolean(todaySlot?.active);
-});
+  const todaySlot = recentDays.value.find(d => d.isToday)
+  return Boolean(todaySlot?.active)
+})
 </script>
 
 <template>
@@ -59,7 +59,9 @@ const isTrainedToday = computed(() => {
     <!-- Header -->
     <div class="flex items-start justify-between">
       <div>
-        <p class="text-xs uppercase tracking-[0.16em] text-muted-foreground font-medium">Daily Consistency</p>
+        <p class="text-xs uppercase tracking-[0.16em] text-muted-foreground font-medium">
+          Daily Consistency
+        </p>
         <h3 class="text-2xl font-bold font-display text-foreground mt-1 flex items-center gap-2">
           <span class="font-mono text-3xl font-bold" :class="props.streakInfo.currentStreak > 0 ? 'text-amber-500' : 'text-muted-foreground'">
             {{ props.streakInfo.currentStreak }}
@@ -119,15 +121,19 @@ const isTrainedToday = computed(() => {
             slot.active
               ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
               : 'bg-surface/80 text-muted-foreground/70 hover:bg-surface border border-border/40',
-            slot.isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : ''
+            slot.isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : '',
           ]"
         >
           <span>{{ slot.dayOfMonth }}</span>
 
           <!-- Tooltip on hover -->
           <div class="pointer-events-none absolute bottom-full mb-1.5 hidden rounded-md border border-border bg-surface-elevated px-2 py-1 text-[10px] text-foreground shadow-md whitespace-nowrap group-hover:block z-20">
-            <p class="font-semibold">{{ slot.dateStr }}</p>
-            <p class="text-muted-foreground">{{ slot.active ? `${slot.completions} completed` : 'No sessions' }}</p>
+            <p class="font-semibold">
+              {{ slot.dateStr }}
+            </p>
+            <p class="text-muted-foreground">
+              {{ slot.active ? `${slot.completions} completed` : 'No sessions' }}
+            </p>
           </div>
         </div>
       </div>

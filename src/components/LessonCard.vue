@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { Check, Lock, Play, Redo } from 'lucide-vue-next';
-import { Lesson } from '../types/bindings';
+import type { Lesson } from '../types/bindings'
+import { Check, Lock, Play, Redo } from '@lucide/vue'
 
 interface Props {
-  lesson: Lesson;
-  index: number;
-  isCompleted: boolean;
-  isLocked: boolean;
+  lesson: Lesson
+  index: number
+  isCompleted: boolean
+  isLocked: boolean
 }
 
-type Emits = {
-  'start-lesson': [lesson: Lesson];
-};
+interface Emits {
+  'start-lesson': [lesson: Lesson]
+}
 
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 
-const handleLessonClick = () => {
+function handleLessonClick() {
   if (!props.isLocked) {
-    emit('start-lesson', props.lesson);
+    emit('start-lesson', props.lesson)
   }
-};
+}
 </script>
 
 <template>

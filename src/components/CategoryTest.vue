@@ -1,29 +1,30 @@
 <script setup lang="ts">
-import { Check, Lock, Play } from 'lucide-vue-next';
-import { Lesson } from '../types/bindings';
+import type { Lesson } from '../types/bindings'
+import { Check, Lock, Play } from '@lucide/vue'
 
 interface Props {
-  tests: Lesson[];
-  allLessonsCompleted: boolean;
-  isTestCompleted: (testId: number) => boolean;
+  tests: Lesson[]
+  allLessonsCompleted: boolean
+  isTestCompleted: (testId: number) => boolean
 }
 
-type Emits = {
-  'start-test': [test: Lesson];
-};
+interface Emits {
+  'start-test': [test: Lesson]
+}
 
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 
-const handleTestClick = (test: Lesson) => {
+function handleTestClick(test: Lesson) {
   if (props.allLessonsCompleted) {
-    emit('start-test', test);
+    emit('start-test', test)
   }
-};
+}
 </script>
 
 <template>
-  <div v-if="tests.length" class="flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-5 transition-all shadow-md"
+  <div
+    v-if="tests.length" class="flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-5 transition-all shadow-md"
     :class="allLessonsCompleted ? 'hover:border-warning cursor-pointer' : 'opacity-50'"
     @click="allLessonsCompleted ? handleTestClick(tests[0]) : null"
   >

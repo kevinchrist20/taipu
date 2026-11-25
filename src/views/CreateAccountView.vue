@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { AVATARS, difficultyOptions, languageOptions } from '../types';
-import { ArrowLeft } from 'lucide-vue-next';
-import UserService from '../services/user.service';
-import useAlert from '../composables/useAlert';
-import router from '../router';
-import AppLogo from '../components/AppLogo.vue';
-import AppButton from '../components/AppButton.vue';
+import { ArrowLeft } from '@lucide/vue'
+import { ref } from 'vue'
+import AppButton from '../components/AppButton.vue'
+import AppLogo from '../components/AppLogo.vue'
+import useAlert from '../composables/useAlert'
+import router from '../router'
+import UserService from '../services/user.service'
+import { AVATARS, difficultyOptions, languageOptions } from '../types'
 
-const selectedAvatar = ref(0);
-const name = ref('');
-const language = ref('ENGLISH');
-const lessonDifficulty = ref('BEGINNER');
-const isLoading = ref(false);
+const selectedAvatar = ref(0)
+const name = ref('')
+const language = ref('ENGLISH')
+const lessonDifficulty = ref('BEGINNER')
+const isLoading = ref(false)
 
 function createAccount() {
   if (!name.value.trim()) {
-    useAlert().setAlert({ message: 'Name is required', type: 'danger' });
-    return;
+    useAlert().setAlert({ message: 'Name is required', type: 'danger' })
+    return
   }
 
-  isLoading.value = true;
+  isLoading.value = true
 
   UserService.createUser({
     name: name.value.trim(),
@@ -28,13 +28,13 @@ function createAccount() {
     language: language.value,
     lessonDifficulty: lessonDifficulty.value,
   }).then(() => {
-    useAlert().setAlert({ message: 'Profile created!', type: 'success' });
-    router.back();
+    useAlert().setAlert({ message: 'Profile created!', type: 'success' })
+    router.back()
   }).catch((error) => {
-    useAlert().setAlert({ message: error, type: 'danger' });
+    useAlert().setAlert({ message: error, type: 'danger' })
   }).finally(() => {
-    isLoading.value = false;
-  });
+    isLoading.value = false
+  })
 }
 </script>
 
@@ -55,10 +55,14 @@ function createAccount() {
         class="w-full max-w-md bg-card border border-border rounded-2xl p-8"
         style="box-shadow: var(--shadow-elevated)"
       >
-        <h1 class="text-2xl font-bold font-display text-foreground mb-1">Create Profile</h1>
-        <p class="text-sm text-muted-foreground mb-7 font-sans">Set up your Taipu persona to track your progress.</p>
+        <h1 class="text-2xl font-bold font-display text-foreground mb-1">
+          Create Profile
+        </h1>
+        <p class="text-sm text-muted-foreground mb-7 font-sans">
+          Set up your Taipu persona to track your progress.
+        </p>
 
-        <form @submit.prevent="createAccount" class="space-y-6">
+        <form class="space-y-6" @submit.prevent="createAccount">
           <!-- Avatar Picker -->
           <div>
             <span class="block text-sm font-medium text-foreground mb-3 font-display">Choose Avatar</span>
@@ -67,13 +71,12 @@ function createAccount() {
                 v-for="(avatar, i) in AVATARS"
                 :key="avatar.slug"
                 type="button"
-                @click="selectedAvatar = i"
-                :class="[
-                  'aspect-square rounded-xl text-2xl flex items-center justify-center transition-all border',
+                class="aspect-square rounded-xl text-2xl flex items-center justify-center transition-all border" :class="[
                   selectedAvatar === i
                     ? 'border-primary ring-2 ring-primary bg-surface-elevated'
-                    : 'border-border bg-surface hover:bg-surface-elevated'
+                    : 'border-border bg-surface hover:bg-surface-elevated',
                 ]"
+                @click="selectedAvatar = i"
               >
                 {{ avatar.emoji }}
               </button>
@@ -85,11 +88,11 @@ function createAccount() {
             <label for="name" class="block text-sm font-medium text-foreground mb-2 font-display">Name</label>
             <input
               id="name"
-              type="text"
               v-model="name"
+              type="text"
               placeholder="Enter your name..."
               class="w-full px-4 py-2.5 rounded-xl bg-surface border border-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all font-sans"
-            />
+            >
           </div>
 
           <!-- Language -->
@@ -100,13 +103,12 @@ function createAccount() {
                 v-for="option in languageOptions"
                 :key="option.value"
                 type="button"
-                @click="language = option.value"
-                :class="[
-                  'flex-1 py-2 rounded-xl text-sm font-medium border transition-all font-sans',
+                class="flex-1 py-2 rounded-xl text-sm font-medium border transition-all font-sans" :class="[
                   language === option.value
                     ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-surface border-border text-muted-foreground hover:border-primary hover:text-foreground'
+                    : 'bg-surface border-border text-muted-foreground hover:border-primary hover:text-foreground',
                 ]"
+                @click="language = option.value"
               >
                 {{ option.label }}
               </button>
@@ -121,13 +123,12 @@ function createAccount() {
                 v-for="option in difficultyOptions"
                 :key="option.value"
                 type="button"
-                @click="lessonDifficulty = option.value"
-                :class="[
-                  'flex-1 py-2 rounded-xl text-sm font-medium border transition-all font-sans',
+                class="flex-1 py-2 rounded-xl text-sm font-medium border transition-all font-sans" :class="[
                   lessonDifficulty === option.value
                     ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-surface border-border text-muted-foreground hover:border-primary hover:text-foreground'
+                    : 'bg-surface border-border text-muted-foreground hover:border-primary hover:text-foreground',
                 ]"
+                @click="lessonDifficulty = option.value"
               >
                 {{ option.label }}
               </button>
