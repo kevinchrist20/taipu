@@ -1,44 +1,45 @@
 <script setup lang="ts">
-import LessonCard from './LessonCard.vue';
-import CategoryTest from './CategoryTest.vue';
-import { Lesson } from '../types/bindings';
+import type { Lesson } from '../types/bindings'
+import CategoryTest from './CategoryTest.vue'
+import LessonCard from './LessonCard.vue'
 
 interface Props {
-  lessons: Lesson[];
-  tests: Lesson[];
-  completedLessons: number[];
-  allLessonsCompleted: boolean;
+  lessons: Lesson[]
+  tests: Lesson[]
+  completedLessons: number[]
+  allLessonsCompleted: boolean
 }
 
-type Emits = {
-  'start-lesson': [lesson: Lesson];
-  'start-test': [test: Lesson];
-};
+interface Emits {
+  'start-lesson': [lesson: Lesson]
+  'start-test': [test: Lesson]
+}
 
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 
-const isLessonComplete = (lessonId: number): boolean => {
-  return props.completedLessons.includes(lessonId);
-};
+function isLessonComplete(lessonId: number): boolean {
+  return props.completedLessons.includes(lessonId)
+}
 
-const isLessonLocked = (index: number): boolean => {
-  if (index === 0) return false;
-  const previousLesson = props.lessons[index - 1];
-  return !isLessonComplete(previousLesson.id);
-};
+function isLessonLocked(index: number): boolean {
+  if (index === 0)
+    return false
+  const previousLesson = props.lessons[index - 1]
+  return !isLessonComplete(previousLesson.id)
+}
 
-const isTestCompleted = (testId: number): boolean => {
-  return props.completedLessons.includes(testId);
-};
+function isTestCompleted(testId: number): boolean {
+  return props.completedLessons.includes(testId)
+}
 
-const handleStartLesson = (lesson: Lesson) => {
-  emit('start-lesson', lesson);
-};
+function handleStartLesson(lesson: Lesson) {
+  emit('start-lesson', lesson)
+}
 
-const handleStartTest = (test: Lesson) => {
-  emit('start-test', test);
-};
+function handleStartTest(test: Lesson) {
+  emit('start-test', test)
+}
 </script>
 
 <template>

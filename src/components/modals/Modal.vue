@@ -1,62 +1,66 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue'
 
 interface Props {
-  show: boolean;
-  size?: 'sm' | 'md' | 'lg';
-  closeOnEscape?: boolean;
-  closeOnBackdrop?: boolean;
+  show: boolean
+  size?: 'sm' | 'md' | 'lg'
+  closeOnEscape?: boolean
+  closeOnBackdrop?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: 'md',
   closeOnEscape: true,
-  closeOnBackdrop: false
-});
+  closeOnBackdrop: false,
+})
 
 const emit = defineEmits<{
   close: []
-}>();
+}>()
 
 const sizeClasses = {
   sm: 'max-w-sm',
   md: 'max-w-md',
-  lg: 'max-w-lg'
-};
+  lg: 'max-w-lg',
+}
 
 function handleEscape(e: KeyboardEvent) {
   if (e.key === 'Escape' && props.closeOnEscape && props.show) {
-    emit('close');
+    emit('close')
   }
 }
 
 function handleBackdropClick() {
   if (props.closeOnBackdrop) {
-    emit('close');
+    emit('close')
   }
 }
 
 onMounted(() => {
   if (props.closeOnEscape) {
-    window.addEventListener('keydown', handleEscape);
+    window.addEventListener('keydown', handleEscape)
   }
-});
+})
 
 onUnmounted(() => {
   if (props.closeOnEscape) {
-    window.removeEventListener('keydown', handleEscape);
+    window.removeEventListener('keydown', handleEscape)
   }
-});
+})
 </script>
 
 <template>
   <Transition name="modal">
-    <div v-if="show" 
-         class="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50"
-         @click="handleBackdropClick">
-      <div class="bg-card border border-border rounded-2xl shadow-elevated p-8 w-full mx-4 transform transition-all"
-           :class="sizeClasses[size]"
-           @click.stop>
+    <div
+      v-if="show"
+      class="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50"
+      @click="handleBackdropClick"
+    >
+      <div
+        class="bg-card border border-border rounded-2xl shadow-elevated p-8 w-full mx-4 transform transition-all"
+        :class="sizeClasses[size]"
+        @click.stop
+      >
         <slot />
       </div>
     </div>

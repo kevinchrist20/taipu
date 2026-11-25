@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Keyboard } from 'lucide-vue-next';
+import { Keyboard } from '@lucide/vue'
 
 defineProps<{
   size?: 'sm' | 'md' | 'lg'

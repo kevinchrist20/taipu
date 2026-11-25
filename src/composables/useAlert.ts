@@ -1,5 +1,5 @@
-import { computed, reactive, ref } from "vue"
-import { Alert } from "../types"
+import type { Alert } from '../types'
+import { computed, reactive, ref } from 'vue'
 
 const alerts = reactive(new Set<Alert>([]))
 const currentAlert = computed(() => Array.from(alerts)[0])

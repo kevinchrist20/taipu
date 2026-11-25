@@ -1,12 +1,13 @@
-import { onMounted, onUnmounted, ComputedRef } from 'vue';
+import type { ComputedRef } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 
 interface KeyboardHandlerParams {
-  onTogglePause: () => void;
-  onResume: () => void;
-  showPauseModal: ComputedRef<boolean>;
-  showStatsModal: ComputedRef<boolean>;
-  showExitModal: ComputedRef<boolean>;
-  currentPosition: ComputedRef<number>;
+  onTogglePause: () => void
+  onResume: () => void
+  showPauseModal: ComputedRef<boolean>
+  showStatsModal: ComputedRef<boolean>
+  showExitModal: ComputedRef<boolean>
+  currentPosition: ComputedRef<number>
 }
 
 export default function useKeyboardHandler({
@@ -15,28 +16,28 @@ export default function useKeyboardHandler({
   showPauseModal,
   showStatsModal,
   showExitModal,
-  currentPosition
+  currentPosition,
 }: KeyboardHandlerParams) {
-
   const handleGlobalKeyPress = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       if (showPauseModal.value) {
-        onResume();
-      } else if (!showStatsModal.value && !showExitModal.value && currentPosition.value > 0) {
-        onTogglePause();
+        onResume()
+      }
+      else if (!showStatsModal.value && !showExitModal.value && currentPosition.value > 0) {
+        onTogglePause()
       }
     }
-  };
+  }
 
   onMounted(() => {
-    window.addEventListener('keydown', handleGlobalKeyPress);
-  });
+    window.addEventListener('keydown', handleGlobalKeyPress)
+  })
 
   onUnmounted(() => {
-    window.removeEventListener('keydown', handleGlobalKeyPress);
-  });
+    window.removeEventListener('keydown', handleGlobalKeyPress)
+  })
 
   return {
     // No return values needed as this composable only handles events
-  };
+  }
 }
