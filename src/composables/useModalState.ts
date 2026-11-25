@@ -1,46 +1,46 @@
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue'
 
 export default function useModalState() {
-  const showStatsModal = ref(false);
-  const showPauseModal = ref(false);
-  const showExitModal = ref(false);
+  const showStatsModal = ref(false)
+  const showPauseModal = ref(false)
+  const showExitModal = ref(false)
 
-  const hasActiveModal = computed(() => 
-    showStatsModal.value || showPauseModal.value || showExitModal.value
-  );
+  const hasActiveModal = computed(() =>
+    showStatsModal.value || showPauseModal.value || showExitModal.value,
+  )
 
   const openStatsModal = () => {
-    showStatsModal.value = true;
-  };
+    showStatsModal.value = true
+  }
 
   const closeStatsModal = () => {
-    showStatsModal.value = false;
-  };
+    showStatsModal.value = false
+  }
 
   const openPauseModal = () => {
-    showPauseModal.value = true;
-  };
+    showPauseModal.value = true
+  }
 
   const closePauseModal = () => {
-    showPauseModal.value = false;
-  };
+    showPauseModal.value = false
+  }
 
   const openExitModal = () => {
-    showExitModal.value = true;
+    showExitModal.value = true
     if (showPauseModal.value) {
-      showPauseModal.value = false;
+      showPauseModal.value = false
     }
-  };
+  }
 
   const closeExitModal = () => {
-    showExitModal.value = false;
-  };
+    showExitModal.value = false
+  }
 
   const closeAllModals = () => {
-    showStatsModal.value = false;
-    showPauseModal.value = false;
-    showExitModal.value = false;
-  };
+    showStatsModal.value = false
+    showPauseModal.value = false
+    showExitModal.value = false
+  }
 
   return {
     showStatsModal: computed(() => showStatsModal.value),
@@ -53,6 +53,6 @@ export default function useModalState() {
     closePauseModal,
     openExitModal,
     closeExitModal,
-    closeAllModals
-  };
+    closeAllModals,
+  }
 }

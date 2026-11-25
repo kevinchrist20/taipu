@@ -1,37 +1,37 @@
 <script setup lang="ts">
-import { RouterView, useRoute } from 'vue-router';
+import { computed, onMounted } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import Alert from './components/alert/index.vue'
-import Header from './components/Header.vue';
-import UtilService from './services/util.service';
-import SettingsService from './services/settings.service';
-import { onMounted, computed } from 'vue';
-import { routes } from './constants';
-import { SessionStore } from './storage';
-import { normalizeTheme } from './utils/ui-formatters';
+import Header from './components/Header.vue'
+import { routes } from './constants'
+import SettingsService from './services/settings.service'
+import UtilService from './services/util.service'
+import { SessionStore } from './storage'
+import { normalizeTheme } from './utils/ui-formatters'
 
 function applyTheme(theme: string) {
-  const normalized = normalizeTheme(theme);
-  SessionStore.setTheme(normalized);
-  document.documentElement.classList.toggle('dark', normalized === 'DARK');
+  const normalized = normalizeTheme(theme)
+  SessionStore.setTheme(normalized)
+  document.documentElement.classList.toggle('dark', normalized === 'DARK')
 }
 
 onMounted(() => {
-  UtilService.checkForUpdates();
+  UtilService.checkForUpdates()
 
   SettingsService.getAppTheme()
-    .then((theme) => applyTheme(theme))
+    .then(theme => applyTheme(theme))
     .catch((error) => {
-      console.error('Failed to load theme settings:', error);
-      applyTheme('LIGHT');
-    });
-});
+      console.error('Failed to load theme settings:', error)
+      applyTheme('LIGHT')
+    })
+})
 
-const route = useRoute();
+const route = useRoute()
 
 // Show the shell nav on authenticated views only
 const showShell = computed(() =>
-  route.path !== routes.home && route.path !== routes.createAccount
-);
+  route.path !== routes.home && route.path !== routes.createAccount,
+)
 </script>
 
 <template>

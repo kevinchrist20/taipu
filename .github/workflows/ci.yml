@@ -3,11 +3,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version (without v prefix, e.g. 0.2.0)"
+        description: 'Release version (without v prefix, e.g. 0.2.0)'
         required: true
         type: string
       prerelease:
-        description: "Mark GitHub release as prerelease"
+        description: Mark GitHub release as prerelease
         required: false
         type: boolean
         default: false
@@ -69,8 +69,8 @@ jobs:
           base: master
           branch: release/version-${{ inputs.version }}
           delete-branch: false
-          title: "chore(release): bump version to ${{ inputs.version }}"
-          commit-message: "chore(release): bump version to ${{ inputs.version }}"
+          title: 'chore(release): bump version to ${{ inputs.version }}'
+          commit-message: 'chore(release): bump version to ${{ inputs.version }}'
           body: |
             Automated version bump created by release workflow.
 
@@ -164,14 +164,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest"
-            args: "--target aarch64-apple-darwin"
-          - platform: "macos-latest"
-            args: "--target x86_64-apple-darwin"
-          - platform: "ubuntu-22.04"
-            args: ""
-          - platform: "windows-latest"
-            args: ""
+          - platform: macos-latest
+            args: --target aarch64-apple-darwin
+          - platform: macos-latest
+            args: --target x86_64-apple-darwin
+          - platform: ubuntu-22.04
+            args: ''
+          - platform: windows-latest
+            args: ''
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -189,7 +189,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: "**/pnpm-lock.yaml"
+          cache-dependency-path: '**/pnpm-lock.yaml'
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable

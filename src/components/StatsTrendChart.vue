@@ -1,199 +1,214 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import type { DailyActivityStat } from '../types/bindings/DailyActivityStat';
-import { TrendingUp, Calendar, Zap, Target } from 'lucide-vue-next';
+import type { DailyActivityStat } from '../types/bindings/DailyActivityStat'
+import { Calendar, Target, TrendingUp, Zap } from '@lucide/vue'
+import { computed, ref } from 'vue'
 
 interface Props {
-  dailyTrends: DailyActivityStat[];
+  dailyTrends: DailyActivityStat[]
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
-type TimeRange = '7d' | '30d' | 'all';
-const activeRange = ref<TimeRange>('30d');
+type TimeRange = '7d' | '30d' | 'all'
+const activeRange = ref<TimeRange>('30d')
 
 // Filter data by selected range
 const filteredData = computed(() => {
   if (!props.dailyTrends || props.dailyTrends.length === 0) {
-    return [];
+    return []
   }
 
-  const sorted = [...props.dailyTrends].sort((a, b) => a.date.localeCompare(b.date));
+  const sorted = [...props.dailyTrends].sort((a, b) => a.date.localeCompare(b.date))
 
   if (activeRange.value === '7d') {
-    return sorted.slice(-7);
-  } else if (activeRange.value === '30d') {
-    return sorted.slice(-30);
+    return sorted.slice(-7)
   }
-  return sorted;
-});
+  else if (activeRange.value === '30d') {
+    return sorted.slice(-30)
+  }
+  return sorted
+})
 
 // Chart dimensions inside SVG viewBox
-const width = 640;
-const height = 220;
-const padding = { top: 25, right: 30, bottom: 35, left: 45 };
+const width = 640
+const height = 220
+const padding = {
+  top: 25,
+  right: 30,
+  bottom: 35,
+  left: 45,
+}
 
-const graphWidth = computed(() => width - padding.left - padding.right);
-const graphHeight = computed(() => height - padding.top - padding.bottom);
+const graphWidth = computed(() => width - padding.left - padding.right)
+const graphHeight = computed(() => height - padding.top - padding.bottom)
 
 // Min and max scales
 const maxWpm = computed(() => {
-  if (filteredData.value.length === 0) return 60;
-  const max = Math.max(...filteredData.value.map(d => d.avgWpm));
-  return Math.ceil(Math.max(max * 1.15, 40));
-});
+  if (filteredData.value.length === 0)
+    return 60
+  const max = Math.max(...filteredData.value.map(d => d.avgWpm))
+  return Math.ceil(Math.max(max * 1.15, 40))
+})
 
 const minWpm = computed(() => {
-  if (filteredData.value.length === 0) return 0;
-  const min = Math.min(...filteredData.value.map(d => d.avgWpm));
-  return Math.max(0, Math.floor(min * 0.8));
-});
+  if (filteredData.value.length === 0)
+    return 0
+  const min = Math.min(...filteredData.value.map(d => d.avgWpm))
+  return Math.max(0, Math.floor(min * 0.8))
+})
 
 // Coordinate mappings
 interface Point {
-  x: number;
-  yWpm: number;
-  yAcc: number;
-  data: DailyActivityStat;
+  x: number
+  yWpm: number
+  yAcc: number
+  data: DailyActivityStat
 }
 
 const points = computed<Point[]>(() => {
-  const data = filteredData.value;
-  if (data.length === 0) return [];
+  const data = filteredData.value
+  if (data.length === 0)
+    return []
   if (data.length === 1) {
     return [
       {
         x: padding.left + graphWidth.value / 2,
         yWpm: getYForWpm(data[0].avgWpm),
         yAcc: getYForAccuracy(data[0].avgAccuracy),
-        data: data[0]
-      }
-    ];
+        data: data[0],
+      },
+    ]
   }
 
   return data.map((d, index) => {
-    const x = padding.left + (index / (data.length - 1)) * graphWidth.value;
-    const yWpm = getYForWpm(d.avgWpm);
-    const yAcc = getYForAccuracy(d.avgAccuracy);
-    return { x, yWpm, yAcc, data: d };
-  });
-});
+    const x = padding.left + (index / (data.length - 1)) * graphWidth.value
+    const yWpm = getYForWpm(d.avgWpm)
+    const yAcc = getYForAccuracy(d.avgAccuracy)
+    return { x, yWpm, yAcc, data: d }
+  })
+})
 
 function getYForWpm(wpm: number): number {
-  const range = maxWpm.value - minWpm.value || 1;
-  const normalized = (wpm - minWpm.value) / range;
-  return padding.top + (1 - normalized) * graphHeight.value;
+  const range = maxWpm.value - minWpm.value || 1
+  const normalized = (wpm - minWpm.value) / range
+  return padding.top + (1 - normalized) * graphHeight.value
 }
 
 function getYForAccuracy(acc: number): number {
   // Accuracy is bounded between 50% and 100%
-  const minAcc = 60;
-  const maxAcc = 100;
-  const clamped = Math.max(minAcc, Math.min(maxAcc, acc));
-  const normalized = (clamped - minAcc) / (maxAcc - minAcc);
-  return padding.top + (1 - normalized) * graphHeight.value;
+  const minAcc = 60
+  const maxAcc = 100
+  const clamped = Math.max(minAcc, Math.min(maxAcc, acc))
+  const normalized = (clamped - minAcc) / (maxAcc - minAcc)
+  return padding.top + (1 - normalized) * graphHeight.value
 }
 
 // Generate smooth bezier path for WPM
 const wpmAreaPath = computed(() => {
-  if (points.value.length === 0) return '';
+  if (points.value.length === 0)
+    return ''
   if (points.value.length === 1) {
-    const p = points.value[0];
-    const bottom = padding.top + graphHeight.value;
-    return `M ${p.x - 20} ${bottom} L ${p.x - 20} ${p.yWpm} L ${p.x + 20} ${p.yWpm} L ${p.x + 20} ${bottom} Z`;
+    const p = points.value[0]
+    const bottom = padding.top + graphHeight.value
+    return `M ${p.x - 20} ${bottom} L ${p.x - 20} ${p.yWpm} L ${p.x + 20} ${p.yWpm} L ${p.x + 20} ${bottom} Z`
   }
 
-  let line = `M ${points.value[0].x} ${points.value[0].yWpm}`;
+  let line = `M ${points.value[0].x} ${points.value[0].yWpm}`
   for (let i = 0; i < points.value.length - 1; i++) {
-    const p0 = points.value[i];
-    const p1 = points.value[i + 1];
-    const cpX = (p0.x + p1.x) / 2;
-    line += ` C ${cpX} ${p0.yWpm}, ${cpX} ${p1.yWpm}, ${p1.x} ${p1.yWpm}`;
+    const p0 = points.value[i]
+    const p1 = points.value[i + 1]
+    const cpX = (p0.x + p1.x) / 2
+    line += ` C ${cpX} ${p0.yWpm}, ${cpX} ${p1.yWpm}, ${p1.x} ${p1.yWpm}`
   }
 
-  const first = points.value[0];
-  const last = points.value[points.value.length - 1];
-  const bottom = padding.top + graphHeight.value;
+  const first = points.value[0]
+  const last = points.value[points.value.length - 1]
+  const bottom = padding.top + graphHeight.value
 
-  return `${line} L ${last.x} ${bottom} L ${first.x} ${bottom} Z`;
-});
+  return `${line} L ${last.x} ${bottom} L ${first.x} ${bottom} Z`
+})
 
 const wpmLinePath = computed(() => {
-  if (points.value.length === 0) return '';
+  if (points.value.length === 0)
+    return ''
   if (points.value.length === 1) {
-    const p = points.value[0];
-    return `M ${p.x - 20} ${p.yWpm} L ${p.x + 20} ${p.yWpm}`;
+    const p = points.value[0]
+    return `M ${p.x - 20} ${p.yWpm} L ${p.x + 20} ${p.yWpm}`
   }
 
-  let line = `M ${points.value[0].x} ${points.value[0].yWpm}`;
+  let line = `M ${points.value[0].x} ${points.value[0].yWpm}`
   for (let i = 0; i < points.value.length - 1; i++) {
-    const p0 = points.value[i];
-    const p1 = points.value[i + 1];
-    const cpX = (p0.x + p1.x) / 2;
-    line += ` C ${cpX} ${p0.yWpm}, ${cpX} ${p1.yWpm}, ${p1.x} ${p1.yWpm}`;
+    const p0 = points.value[i]
+    const p1 = points.value[i + 1]
+    const cpX = (p0.x + p1.x) / 2
+    line += ` C ${cpX} ${p0.yWpm}, ${cpX} ${p1.yWpm}, ${p1.x} ${p1.yWpm}`
   }
-  return line;
-});
+  return line
+})
 
 const accuracyLinePath = computed(() => {
-  if (points.value.length <= 1) return '';
-  let line = `M ${points.value[0].x} ${points.value[0].yAcc}`;
+  if (points.value.length <= 1)
+    return ''
+  let line = `M ${points.value[0].x} ${points.value[0].yAcc}`
   for (let i = 0; i < points.value.length - 1; i++) {
-    const p0 = points.value[i];
-    const p1 = points.value[i + 1];
-    const cpX = (p0.x + p1.x) / 2;
-    line += ` C ${cpX} ${p0.yAcc}, ${cpX} ${p1.yAcc}, ${p1.x} ${p1.yAcc}`;
+    const p0 = points.value[i]
+    const p1 = points.value[i + 1]
+    const cpX = (p0.x + p1.x) / 2
+    line += ` C ${cpX} ${p0.yAcc}, ${cpX} ${p1.yAcc}, ${p1.x} ${p1.yAcc}`
   }
-  return line;
-});
+  return line
+})
 
 // Interactive hover crosshair
-const hoveredIndex = ref<number | null>(null);
+const hoveredIndex = ref<number | null>(null)
 
 const hoveredPoint = computed(() => {
   if (hoveredIndex.value === null || hoveredIndex.value >= points.value.length) {
-    return null;
+    return null
   }
-  return points.value[hoveredIndex.value];
-});
+  return points.value[hoveredIndex.value]
+})
 
 function handleMouseMove(event: MouseEvent) {
-  if (points.value.length === 0) return;
-  const svg = (event.currentTarget as HTMLElement).querySelector('svg');
-  if (!svg) return;
+  if (points.value.length === 0)
+    return
+  const svg = (event.currentTarget as HTMLElement).querySelector('svg')
+  if (!svg)
+    return
 
-  const rect = svg.getBoundingClientRect();
-  const mouseX = ((event.clientX - rect.left) / rect.width) * width;
+  const rect = svg.getBoundingClientRect()
+  const mouseX = ((event.clientX - rect.left) / rect.width) * width
 
   // Find closest point along x axis
-  let closestIdx = 0;
-  let minDiff = Infinity;
+  let closestIdx = 0
+  let minDiff = Infinity
 
   points.value.forEach((pt, idx) => {
-    const diff = Math.abs(pt.x - mouseX);
+    const diff = Math.abs(pt.x - mouseX)
     if (diff < minDiff) {
-      minDiff = diff;
-      closestIdx = idx;
+      minDiff = diff
+      closestIdx = idx
     }
-  });
+  })
 
-  hoveredIndex.value = closestIdx;
+  hoveredIndex.value = closestIdx
 }
 
 function handleMouseLeave() {
-  hoveredIndex.value = null;
+  hoveredIndex.value = null
 }
 
 function formatDateLabel(dateStr: string): string {
   try {
-    const parts = dateStr.split('-');
+    const parts = dateStr.split('-')
     if (parts.length === 3) {
-      const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
     }
-    return dateStr;
-  } catch {
-    return dateStr;
+    return dateStr
+  }
+  catch {
+    return dateStr
   }
 }
 </script>
@@ -205,9 +220,13 @@ function formatDateLabel(dateStr: string): string {
       <div>
         <div class="flex items-center gap-2">
           <TrendingUp class="h-4 w-4 text-primary" />
-          <h3 class="text-xl font-semibold font-display text-foreground">Speed & Accuracy Trend</h3>
+          <h3 class="text-xl font-semibold font-display text-foreground">
+            Speed & Accuracy Trend
+          </h3>
         </div>
-        <p class="text-xs text-muted-foreground mt-0.5">Track your daily typing trajectory over time</p>
+        <p class="text-xs text-muted-foreground mt-0.5">
+          Track your daily typing trajectory over time
+        </p>
       </div>
 
       <div class="flex flex-wrap items-center gap-4">
@@ -265,7 +284,9 @@ function formatDateLabel(dateStr: string): string {
         class="flex h-full flex-col items-center justify-center text-center p-6 text-muted-foreground"
       >
         <Calendar class="h-8 w-8 mb-2 opacity-40" />
-        <p class="text-sm font-medium">No trend data logged yet</p>
+        <p class="text-sm font-medium">
+          No trend data logged yet
+        </p>
         <p class="text-xs max-w-xs mt-1 text-muted-foreground/80">
           Complete typing lessons across multiple days to unlock your performance growth curve.
         </p>
@@ -422,7 +443,7 @@ function formatDateLabel(dateStr: string): string {
         class="pointer-events-none absolute top-2 rounded-xl border border-border bg-surface-elevated/95 px-3 py-2 shadow-lg backdrop-blur-md transition-all duration-150 text-xs"
         :style="{
           left: `${Math.min(width - 160, Math.max(20, (hoveredPoint.x / width) * 100))}%`,
-          transform: 'translateX(-50%)'
+          transform: 'translateX(-50%)',
         }"
       >
         <p class="font-medium text-muted-foreground text-[11px] mb-1">
