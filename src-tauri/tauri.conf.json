@@ -34,7 +34,6 @@
       "endpoints": [
         "https://github.com/kevinchrist20/taipu/releases/latest/download/latest.json"
       ],
-      "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJCN0FDMkQ4OTlCRTY1ODQKUldTRVpiNloyTUo2S3dEUURiTFA0Vzd1M0N4OVI4K0k0QmgvU09ETUU1Nitoa2hTdGptTDVOZHgK"
     }
   },

@@ -3,11 +3,14 @@ import { computed, onMounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import Alert from './components/alert/index.vue'
 import Header from './components/Header.vue'
+import UpdateDialog from './components/UpdateDialog.vue'
+import { useUpdater } from './composables/useUpdater'
 import { routes } from './constants'
 import SettingsService from './services/settings.service'
-import UtilService from './services/util.service'
 import { SessionStore } from './storage'
 import { normalizeTheme } from './utils/ui-formatters'
+
+const updater = useUpdater()
 
 function applyTheme(theme: string) {
   const normalized = normalizeTheme(theme)
@@ -16,7 +19,7 @@ function applyTheme(theme: string) {
 }
 
 onMounted(() => {
-  UtilService.checkForUpdates()
+  void updater.initialize()
 
   SettingsService.getAppTheme()
     .then(theme => applyTheme(theme))
@@ -40,4 +43,5 @@ const showShell = computed(() =>
     <Header v-if="showShell" />
     <RouterView />
   </main>
+  <UpdateDialog />
 </template>
