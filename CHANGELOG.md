@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project follows Semantic Versioning.
 
+## [0.4.0] - 2026-11-26
+
+### Added
+
+- In-app update experience: a silent background check runs shortly after launch and, when a new release is found, a dismissible update dialog offers download, install, and restart without leaving the app.
+- Custom update dialog (`UpdateDialog.vue`) showing the version transition, inline release notes, live download progress with percentage, and a final "Restart & update" confirmation step.
+- `useUpdater` composable managing the full update lifecycle (idle, available, downloading, downloaded, installing, error) with retry support and silent failure when a check fails (e.g. while offline).
+- Tauri process plugin registration and `process:default` capability to enable relaunching into the updated version after installation.
+- Unit test setup with Vitest and jsdom, including coverage for the updater composable flow, exposed via a `test` script.
+
+### Changed
+
+- Replaced the built-in updater dialog with Taipu's own opt-in update dialog; dismissing keeps the current version and the offer returns on the next launch.
+- Update checks no longer interrupt the user: startup checks run quietly and never block the app when offline or when the check fails.
+- Updated all frontend dependencies to latest versions, including Pinia 4, Vue Router 5, Vite 8, ESLint 10, TypeScript 5.9, UnoCSS 66.13, and the renamed `@lucide/vue` icon package.
+- Updated the Rust/Tauri toolchain: Tauri 2.12.7, tauri-build 2.7.6, ts-rs 12, Diesel 2.4, dirs 7, and refreshed Tauri plugins (shell 2.6, process 2.4, store 2.5, updater).
+- Removed the remaining Tailwind CSS configuration in favor of UnoCSS-only styling.
+
+---
+
 ## [0.3.0] - 2026-09-02
 
 ### Added

@@ -1,18 +1,17 @@
-# Taipu v0.3.0
+# Taipu v0.4.0
 
-This release introduces **Visual Progress Analytics**, featuring an organic, Japanese Bonsai-inspired **Growth Tree**, interactive **Speed & Accuracy Trend Charts**, and **Daily Practice Streaks**.
+This release introduces **In-App Updates**: Taipu can now check for new versions, download them, and restart straight into the update — without ever leaving the app. It also ships a full refresh of the frontend and Rust/Tauri toolchains.
 
 ## Highlights
 
-- **Bonsai Growth Tree**: A procedural vector growth tree that sprouts, branches, grows lush canopy foliage, and bursts into floral bloom across 5 distinct evolutionary stages as your typing skill and consistency advance.
-- **Dynamic Foliage & Floral Blooms**: Canopy density scales with your typing accuracy precision, while vibrant blossoms emerge dynamically based on active consecutive practice streaks.
-- **Speed & Accuracy Trend Chart**: Zero-dependency interactive time-series chart with 7-day, 30-day, and all-time range views, dual WPM gradient curve and accuracy trajectory line, and mouse inspection crosshair with live session tooltips.
-- **Daily Practice Streaks & 28-Day Punchcard**: Track consecutive active days with an animated flame badge, best streak milestones, and a visual 4-week activity punchcard showing daily completions on hover.
-- **Refreshed Stats Experience**: Redesigned Performance & Mastery dashboard organizing growth visuals, streak telemetry, key metrics, curriculum progress, and activity logs into a cohesive desktop layout.
+- **In-App Updates**: A few seconds after launch, Taipu quietly checks GitHub Releases for a newer version. When one is found, a compact dialog slides in from the bottom-right offering the update — no more hunting for download links or running installers by hand.
+- **You Stay in Control**: Updating is entirely opt-in. The dialog shows the version transition, the release notes for the new version, and live download progress — then a single "Restart & update" confirmation applies it. Prefer to wait? Hit "Later" and Taipu stays as-is until the next launch.
+- **Resilient by Design**: Update checks never interrupt your practice. If you're offline or the check fails, Taipu stays silent and simply offers the update on your next launch, and a failed download can be retried with one click.
 
 ## Technical Updates
 
-- Added Rust stats models (`DailyActivityStat`, `StreakInfo`, `TreeStageInfo`) with synchronized TypeScript bindings via `ts-rs`.
-- Implemented SQLite time-bucketed daily aggregation and calendar-date streak calculation in `stats_service.rs`.
-- Created lightweight, responsive SVG components (`GrowthTree.vue`, `StatsTrendChart.vue`, `StreakCard.vue`) fully styled with Taipu's design tokens and light/dark theme support.
-- Added interactive milestone preview controls allowing typists to explore all 5 tree evolution tiers.
+- Implemented the updater on top of the Tauri updater and process plugins, wired through a new `useUpdater` composable covering the full lifecycle (available → downloading → downloaded → installing) with typed error states, byte-level download tracking, and retry support.
+- Built a custom `UpdateDialog.vue` replacing the built-in updater dialog, styled with Taipu's design tokens and light/dark theme support, featuring inline release notes, an animated progress bar, and relaunch confirmation.
+- Added a Vitest + jsdom unit test setup (`pnpm test`) with coverage for the updater composable flow.
+- Upgraded the entire frontend stack: Pinia 4, Vue Router 5, Vite 8, ESLint 10, TypeScript 5.9, UnoCSS 66.13, and the renamed `@lucide/vue` icon package; removed the remaining Tailwind CSS configuration.
+- Upgraded the Rust/Tauri toolchain: Tauri 2.12.7, tauri-build 2.7.6, ts-rs 12, Diesel 2.4, and refreshed Tauri plugins (shell 2.6, process 2.4, store 2.5, updater).
