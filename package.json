@@ -1,7 +1,7 @@
 {
   "name": "taipu",
   "type": "module",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "A modern typing trainer app that helps users improve their typing speed and accuracy through structured lessons and real-time performance tracking",
   "scripts": {
@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "launch": "tauri dev",
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "test": "vitest run"
   },
   "dependencies": {
     "@lucide/vue": "^1.80.0",
@@ -29,9 +30,11 @@
     "@tauri-apps/cli": "^2.12.6",
     "@vitejs/plugin-vue": "^6.0.11",
     "eslint": "^10.15.0",
+    "jsdom": "^31.0.1",
     "typescript": "^5.9.3",
     "unocss": "^66.13.0",
     "vite": "^8.3.8",
+    "vitest": "^5.1.1",
     "vue-tsc": "^3.3.14"
   }
 }
